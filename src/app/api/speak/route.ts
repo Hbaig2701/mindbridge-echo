@@ -29,6 +29,19 @@ export async function POST(req: Request) {
     });
   } catch (err) {
     console.error('[api/speak] failed:', err);
-    return NextResponse.json({ error: 'TTS failed' }, { status: 502 });
+    // TEMP DIAGNOSTIC: surface the underlying cause so we can pinpoint the failure.
+    // Revert to a plain { error: 'TTS failed' } once the voice is working.
+    const e = err as { cause?: unknown; message?: string };
+    const cause = e?.cause as { status?: number; message?: string; error?: { message?: string } } | undefined;
+    return NextResponse.json(
+      {
+        error: 'TTS failed',
+        detail: cause?.error?.message || cause?.message || e?.message || String(err),
+        openaiStatus: cause?.status ?? null,
+        model: process.env.OPENAI_TTS_MODEL || 'gpt-4o-mini-tts',
+        hasKey: Boolean(process.env.OPENAI_API_KEY),
+      },
+      { status: 502 },
+    );
   }
 }
