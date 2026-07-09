@@ -1,29 +1,39 @@
 'use client';
 
-// Push-to-talk mic button. Tap once to start; it auto-detects when you stop speaking
-// (a short silence) and sends automatically — so a turn is one tap, not two. You can
-// still tap again to send immediately. Recording is button-STARTED (not always-on):
-// nothing is captured until you tap. Uploads to /api/transcribe (Whisper) → onTranscript.
-// Any failure surfaces quietly; the caller always has a text fallback.
+// Push-to-talk mic button. Tap once to start; it auto-detects when you stop
+// speaking (a natural pause) and sends automatically — one tap per turn.
+//
+// Robustness (added to fight glitches):
+//  - onStart fires the moment recording begins → caller stops any TTS (barge-in),
+//    so the mic never records Echo's own voice.
+//  - Silence detection only arms after SUSTAINED real speech, ignoring the first
+//    moments (button click / TTS tail) so it can't cut you off after ~1s.
+//  - If no real speech is ever detected, we DON'T send audio to Whisper — this
+//    prevents the "Thanks for watching!" silence hallucination.
+//
+// Uploads to /api/transcribe (Whisper); raw audio is used then discarded.
 
 import { useCallback, useRef, useState } from 'react';
 
 type RecState = 'idle' | 'recording' | 'transcribing' | 'error';
 
-// Voice-activity endpointing parameters.
-const SILENCE_MS = 1500; // pause after speech that ends a turn
-const MIN_SPEECH_MS = 300; // must hear this much speech before auto-stop can fire
-const NO_SPEECH_TIMEOUT_MS = 7000; // if you never speak, stop and reset
-const MAX_RECORD_MS = 30000; // hard cap on a single turn
-const SPEAKING_RMS = 0.02; // volume threshold that counts as "speaking"
+// Voice-activity endpointing.
+const SILENCE_MS = 2000; // trailing pause that ends a turn (generous — natural pauses ok)
+const START_GRACE_MS = 500; // ignore the very start (click / TTS tail) before listening for speech
+const VOICED_RUN_MS = 180; // sustained voiced audio required to count as "speaking"
+const NO_SPEECH_TIMEOUT_MS = 6000; // if you never speak, stop and reset (no transcription)
+const MAX_RECORD_MS = 30000; // hard cap
+const SPEAKING_RMS = 0.03; // loudness threshold that counts as voice
 
 export function MicButton({
   onTranscript,
+  onStart,
   size = 'sm',
   idleLabel = 'Speak',
   className,
 }: {
   onTranscript: (text: string) => void;
+  onStart?: () => void; // fired when recording actually begins (use for barge-in)
   size?: 'sm' | 'lg';
   idleLabel?: string;
   className?: string;
@@ -32,10 +42,9 @@ export function MicButton({
   const mediaRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
-
-  // Web Audio nodes for silence detection.
   const audioCtxRef = useRef<AudioContext | null>(null);
   const rafRef = useRef<number | null>(null);
+  const hasSpokenRef = useRef(false); // did we detect real, sustained speech this turn?
 
   const cleanupAudio = () => {
     if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
@@ -55,12 +64,13 @@ export function MicButton({
     mediaRef.current = null;
   }, []);
 
-  // Monitor microphone volume and auto-stop after a trailing silence.
   const startSilenceDetection = useCallback(
     (stream: MediaStream) => {
       let ctx: AudioContext;
       try {
-        const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const AC =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
         ctx = new AC();
       } catch {
         return; // no Web Audio → manual tap-to-stop still works
@@ -73,12 +83,11 @@ export function MicButton({
       const data = new Uint8Array(analyser.fftSize);
 
       const startedAt = performance.now();
-      let hasSpoken = false;
-      let lastSpeechAt = startedAt;
+      let lastVoicedAt = 0;
+      let voicedRunStart = 0; // when the current run of voiced frames began
 
       const tick = () => {
         analyser.getByteTimeDomainData(data);
-        // RMS of the centered waveform → rough loudness 0..1.
         let sumSq = 0;
         for (let i = 0; i < data.length; i++) {
           const v = (data[i] - 128) / 128;
@@ -86,18 +95,25 @@ export function MicButton({
         }
         const rms = Math.sqrt(sumSq / data.length);
         const now = performance.now();
+        const elapsed = now - startedAt;
 
-        if (rms > SPEAKING_RMS) {
-          hasSpoken = true;
-          lastSpeechAt = now;
+        // Ignore the opening moments entirely (button click, TTS tail dying out).
+        if (elapsed > START_GRACE_MS) {
+          if (rms > SPEAKING_RMS) {
+            if (voicedRunStart === 0) voicedRunStart = now;
+            // Only count as real speech after a sustained voiced run.
+            if (now - voicedRunStart >= VOICED_RUN_MS) {
+              hasSpokenRef.current = true;
+              lastVoicedAt = now;
+            }
+          } else {
+            voicedRunStart = 0; // reset the run on a quiet frame
+          }
         }
 
-        const elapsed = now - startedAt;
-        const sinceSpeech = now - lastSpeechAt;
-
         const endedBySilence =
-          hasSpoken && elapsed > MIN_SPEECH_MS && sinceSpeech > SILENCE_MS;
-        const endedByNoSpeech = !hasSpoken && elapsed > NO_SPEECH_TIMEOUT_MS;
+          hasSpokenRef.current && lastVoicedAt > 0 && now - lastVoicedAt > SILENCE_MS;
+        const endedByNoSpeech = !hasSpokenRef.current && elapsed > NO_SPEECH_TIMEOUT_MS;
         const endedByMax = elapsed > MAX_RECORD_MS;
 
         if (endedBySilence || endedByNoSpeech || endedByMax) {
@@ -113,8 +129,13 @@ export function MicButton({
 
   const start = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      });
       streamRef.current = stream;
+      hasSpokenRef.current = false;
+      onStart?.(); // barge-in: caller stops Echo's voice now
+
       const mime = MediaRecorder.isTypeSupported('audio/webm')
         ? 'audio/webm'
         : MediaRecorder.isTypeSupported('audio/mp4')
@@ -128,6 +149,13 @@ export function MicButton({
       recorder.onstop = async () => {
         cleanupAudio();
         stopStream();
+
+        // No real speech detected → don't send silence to Whisper. Reset quietly.
+        if (!hasSpokenRef.current) {
+          setState('idle');
+          return;
+        }
+
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
         if (blob.size === 0) {
           setState('idle');
@@ -139,14 +167,13 @@ export function MicButton({
           const ext = (recorder.mimeType || 'audio/webm').includes('mp4') ? 'mp4' : 'webm';
           form.append('audio', blob, `recording.${ext}`);
           const res = await fetch('/api/transcribe', { method: 'POST', body: form });
-          const data = await res.json();
-          if (res.ok && data.text) {
-            onTranscript(data.text);
-            setState('idle');
-          } else {
-            // Empty transcription (e.g. no speech) → quietly reset, not an error.
-            setState(data && 'text' in data ? 'idle' : 'error');
+          const result = await res.json();
+          const text = (result?.text ?? '').trim();
+          if (res.ok && text) {
+            onTranscript(text);
           }
+          // Empty text (server filtered silence/hallucination) → quietly reset.
+          setState('idle');
         } catch {
           setState('error');
         }
@@ -161,7 +188,7 @@ export function MicButton({
       cleanupAudio();
       stopStream();
     }
-  }, [onTranscript, startSilenceDetection]);
+  }, [onTranscript, onStart, startSilenceDetection]);
 
   const toggle = () => {
     if (state === 'recording') stop();

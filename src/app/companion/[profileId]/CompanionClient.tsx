@@ -155,6 +155,7 @@ export function CompanionClient({ profile }: { profile: Profile }) {
         <MicButton
           size="lg"
           idleLabel="Talk to Echo"
+          onStart={() => stopSpeaking()}
           onTranscript={(t) => send(t, 'voice')}
         />
 
