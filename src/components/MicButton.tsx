@@ -1,12 +1,21 @@
 'use client';
 
-// Push-to-talk mic button (button-activated, NOT always-on). Tap to start, tap to
-// stop → uploads the recording to /api/transcribe (Whisper) → returns text via
-// onTranscript. Any failure surfaces quietly; the caller always has a text fallback.
+// Push-to-talk mic button. Tap once to start; it auto-detects when you stop speaking
+// (a short silence) and sends automatically — so a turn is one tap, not two. You can
+// still tap again to send immediately. Recording is button-STARTED (not always-on):
+// nothing is captured until you tap. Uploads to /api/transcribe (Whisper) → onTranscript.
+// Any failure surfaces quietly; the caller always has a text fallback.
 
 import { useCallback, useRef, useState } from 'react';
 
 type RecState = 'idle' | 'recording' | 'transcribing' | 'error';
+
+// Voice-activity endpointing parameters.
+const SILENCE_MS = 1500; // pause after speech that ends a turn
+const MIN_SPEECH_MS = 300; // must hear this much speech before auto-stop can fire
+const NO_SPEECH_TIMEOUT_MS = 7000; // if you never speak, stop and reset
+const MAX_RECORD_MS = 30000; // hard cap on a single turn
+const SPEAKING_RMS = 0.02; // volume threshold that counts as "speaking"
 
 export function MicButton({
   onTranscript,
@@ -24,10 +33,83 @@ export function MicButton({
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
 
+  // Web Audio nodes for silence detection.
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  const cleanupAudio = () => {
+    if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+    audioCtxRef.current?.close().catch(() => {});
+    audioCtxRef.current = null;
+  };
+
   const stopStream = () => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
   };
+
+  const stop = useCallback(() => {
+    cleanupAudio();
+    mediaRef.current?.stop();
+    mediaRef.current = null;
+  }, []);
+
+  // Monitor microphone volume and auto-stop after a trailing silence.
+  const startSilenceDetection = useCallback(
+    (stream: MediaStream) => {
+      let ctx: AudioContext;
+      try {
+        const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        ctx = new AC();
+      } catch {
+        return; // no Web Audio → manual tap-to-stop still works
+      }
+      audioCtxRef.current = ctx;
+      const source = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 1024;
+      source.connect(analyser);
+      const data = new Uint8Array(analyser.fftSize);
+
+      const startedAt = performance.now();
+      let hasSpoken = false;
+      let lastSpeechAt = startedAt;
+
+      const tick = () => {
+        analyser.getByteTimeDomainData(data);
+        // RMS of the centered waveform → rough loudness 0..1.
+        let sumSq = 0;
+        for (let i = 0; i < data.length; i++) {
+          const v = (data[i] - 128) / 128;
+          sumSq += v * v;
+        }
+        const rms = Math.sqrt(sumSq / data.length);
+        const now = performance.now();
+
+        if (rms > SPEAKING_RMS) {
+          hasSpoken = true;
+          lastSpeechAt = now;
+        }
+
+        const elapsed = now - startedAt;
+        const sinceSpeech = now - lastSpeechAt;
+
+        const endedBySilence =
+          hasSpoken && elapsed > MIN_SPEECH_MS && sinceSpeech > SILENCE_MS;
+        const endedByNoSpeech = !hasSpoken && elapsed > NO_SPEECH_TIMEOUT_MS;
+        const endedByMax = elapsed > MAX_RECORD_MS;
+
+        if (endedBySilence || endedByNoSpeech || endedByMax) {
+          stop();
+          return;
+        }
+        rafRef.current = requestAnimationFrame(tick);
+      };
+      rafRef.current = requestAnimationFrame(tick);
+    },
+    [stop],
+  );
 
   const start = useCallback(async () => {
     try {
@@ -44,6 +126,7 @@ export function MicButton({
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
       recorder.onstop = async () => {
+        cleanupAudio();
         stopStream();
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
         if (blob.size === 0) {
@@ -61,7 +144,8 @@ export function MicButton({
             onTranscript(data.text);
             setState('idle');
           } else {
-            setState('error');
+            // Empty transcription (e.g. no speech) → quietly reset, not an error.
+            setState(data && 'text' in data ? 'idle' : 'error');
           }
         } catch {
           setState('error');
@@ -70,17 +154,14 @@ export function MicButton({
       recorder.start();
       mediaRef.current = recorder;
       setState('recording');
+      startSilenceDetection(stream);
     } catch {
       // Mic permission denied / unavailable → fall back silently to text entry.
       setState('error');
+      cleanupAudio();
       stopStream();
     }
-  }, [onTranscript]);
-
-  const stop = useCallback(() => {
-    mediaRef.current?.stop();
-    mediaRef.current = null;
-  }, []);
+  }, [onTranscript, startSilenceDetection]);
 
   const toggle = () => {
     if (state === 'recording') stop();
@@ -104,10 +185,10 @@ export function MicButton({
   const label =
     state === 'recording'
       ? big
-        ? 'Tap when done'
-        : 'Stop'
+        ? 'Listening… (tap to send)'
+        : 'Listening…'
       : state === 'transcribing'
-        ? 'Listening…'
+        ? 'One moment…'
         : state === 'error'
           ? big
             ? 'Try again'
@@ -133,10 +214,7 @@ function MicGlyph({ big }: { big: boolean }) {
   const s = big ? 40 : 16;
   return (
     <svg width={s} height={s} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"
-        fill="currentColor"
-      />
+      <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z" fill="currentColor" />
       <path
         d="M19 11a7 7 0 0 1-14 0M12 18v3"
         stroke="currentColor"
