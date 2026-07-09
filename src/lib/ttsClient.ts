@@ -43,5 +43,23 @@ function browserSpeak(text: string) {
   const utter = new SpeechSynthesisUtterance(text);
   utter.rate = 0.9; // slightly slowed, calm pace
   utter.pitch = 1;
+  const voice = pickNaturalVoice();
+  if (voice) utter.voice = voice;
   window.speechSynthesis.speak(utter);
+}
+
+// Prefer a natural-sounding system voice over the default (which is often robotic).
+function pickNaturalVoice(): SpeechSynthesisVoice | null {
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return null; // may not be loaded yet on first call; that's ok
+  const en = voices.filter((v) => v.lang.toLowerCase().startsWith('en'));
+  const pool = en.length ? en : voices;
+  // Names of the higher-quality voices across macOS / iOS / Chrome / Edge.
+  const preferred = ['samantha', 'ava', 'allison', 'google us english', 'aria', 'jenny', 'zira', 'siri'];
+  for (const name of preferred) {
+    const match = pool.find((v) => v.name.toLowerCase().includes(name));
+    if (match) return match;
+  }
+  // Otherwise favor a local (non-network) voice.
+  return pool.find((v) => v.localService) ?? pool[0] ?? null;
 }
