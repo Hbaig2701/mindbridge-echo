@@ -1,11 +1,13 @@
 'use client';
 
-// Care-recipient mode: warm, large, unhurried, dominant push-to-talk. Speaks every
-// reply aloud. Text entry is always available as a fallback. No dead-ends.
+// Care-recipient mode: warm, large, HANDS-FREE. Tap once to begin; after that the
+// person just talks — Echo speaks, then automatically listens for the next turn.
+// No tapping between turns (dementia-friendly, minimal friction). Speaks every reply
+// aloud; a text fallback is always available. A clear "End" control stops listening.
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MicButton } from '@/components/MicButton';
+import { VoiceMic } from '@/lib/voiceMic';
 import { speak, stopSpeaking } from '@/lib/ttsClient';
 import type { MessageTurnResponse, Profile } from '@/lib/types';
 
@@ -14,32 +16,31 @@ interface Bubble {
   text: string;
 }
 
+type Mode = 'idle' | 'listening' | 'thinking' | 'speaking';
+
 export function CompanionClient({ profile }: { profile: Profile }) {
   const router = useRouter();
   const firstName = profile.name.split(' ')[0] || profile.name;
+  const greeting = `Hello ${firstName}. It's so good to spend a little time with you. How are you feeling today?`;
 
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [bubbles, setBubbles] = useState<Bubble[]>([
-    {
-      role: 'assistant',
-      text: `Hello ${firstName}. It's so good to spend a little time with you. How are you feeling today?`,
-    },
-  ]);
-  const [pending, setPending] = useState(false);
+  const [bubbles, setBubbles] = useState<Bubble[]>([{ role: 'assistant', text: greeting }]);
+  const [mode, setMode] = useState<Mode>('idle');
   const [typed, setTyped] = useState('');
   const [showText, setShowText] = useState(false);
   const [handoff, setHandoff] = useState(false);
+  const [micDenied, setMicDenied] = useState(false);
 
-  // Set on mount (see the greeting effect); avoids an impure Date.now() during render.
+  const sessionIdRef = useRef<string | null>(null);
+  const micRef = useRef<VoiceMic | null>(null);
+  const activeRef = useRef(false);
+  const loopRunningRef = useRef(false);
+  const pendingTypedRef = useRef<string | null>(null);
   const startedAtRef = useRef<number>(0);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const greeted = useRef(false);
 
-  // Start a session on mount (once) and speak the greeting.
+  // Create the session on mount (no gesture needed). Greeting is spoken on first tap.
   useEffect(() => {
-    if (greeted.current) return;
-    greeted.current = true;
-    startedAtRef.current = Date.now();
+    let cancelled = false;
     (async () => {
       try {
         const res = await fetch('/api/session', {
@@ -48,23 +49,31 @@ export function CompanionClient({ profile }: { profile: Profile }) {
           body: JSON.stringify({ profileId: profile.id, mode: 'care_recipient' }),
         });
         const data = await res.json();
-        if (res.ok) setSessionId(data.sessionId);
+        if (!cancelled && res.ok) sessionIdRef.current = data.sessionId;
       } catch {
-        /* start still works; message calls will error gracefully if no session */
+        /* replies will fall back gracefully if the session is missing */
       }
-      speak(bubbles[0].text);
     })();
+    return () => {
+      cancelled = true;
+      activeRef.current = false;
+      micRef.current?.cancel();
+      stopSpeaking();
+      micRef.current?.close();
+      micRef.current = null;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-scroll to the newest bubble.
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [bubbles, pending]);
+  }, [bubbles, mode]);
 
   const endSession = async () => {
-    stopSpeaking();
-    const respiteSeconds = Math.round((Date.now() - startedAtRef.current) / 1000);
+    const respiteSeconds = startedAtRef.current
+      ? Math.round((Date.now() - startedAtRef.current) / 1000)
+      : 0;
+    const sessionId = sessionIdRef.current;
     if (sessionId) {
       try {
         await fetch('/api/session', {
@@ -78,42 +87,122 @@ export function CompanionClient({ profile }: { profile: Profile }) {
     }
   };
 
-  const send = async (text: string, channel: 'voice' | 'text') => {
-    const content = text.trim();
-    if (!content || pending) return;
-    setTyped('');
-    setBubbles((b) => [...b, { role: 'user', text: content }]);
-    setPending(true);
+  async function getReply(text: string): Promise<MessageTurnResponse> {
     try {
       const res = await fetch('/api/message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, content, inputChannel: channel }),
+        body: JSON.stringify({ sessionId: sessionIdRef.current, content: text, inputChannel: 'voice' }),
       });
-      const data: MessageTurnResponse = await res.json();
-      const reply =
-        data.reply ||
-        "I'm right here with you. Let's take a slow breath together.";
-      setBubbles((b) => [...b, { role: 'assistant', text: reply }]);
-      setHandoff(Boolean(data.handoff));
-      speak(reply);
+      return (await res.json()) as MessageTurnResponse;
     } catch {
-      const fallback =
-        "I'm having a little trouble hearing you just now, but I'm still right here. Could you say that again?";
-      setBubbles((b) => [...b, { role: 'assistant', text: fallback }]);
-      speak(fallback);
-    } finally {
-      setPending(false);
+      return {
+        reply:
+          "I'm having a little trouble hearing you just now, but I'm still right here. Could you say that again?",
+        assessment: {
+          distress: false,
+          distress_type: 'none',
+          safety_concern: false,
+          safety_type: 'none',
+          uncertainty: false,
+          confidence: 0,
+        },
+        flags: [],
+        handoff: false,
+      };
     }
-  };
+  }
+
+  // Add the user's words, get Echo's reply, and speak it (awaits until she finishes).
+  async function respondTo(text: string) {
+    setBubbles((b) => [...b, { role: 'user', text }]);
+    setMode('thinking');
+    const data = await getReply(text);
+    const reply = data.reply || "I'm right here with you. Let's take a slow breath together.";
+    setBubbles((b) => [...b, { role: 'assistant', text: reply }]);
+    setHandoff(Boolean(data.handoff));
+    setMode('speaking');
+    await speak(reply);
+  }
+
+  // The hands-free loop: listen → respond → listen → … until ended.
+  async function conversationLoop() {
+    if (loopRunningRef.current) return;
+    loopRunningRef.current = true;
+    while (activeRef.current) {
+      setMode('listening');
+      const spoken = (await micRef.current?.listen()) ?? '';
+      let text = spoken;
+      if (!text && pendingTypedRef.current) {
+        text = pendingTypedRef.current;
+        pendingTypedRef.current = null;
+      }
+      if (!activeRef.current) break;
+      if (!text) continue; // silence — keep listening, no phantom messages
+      await respondTo(text);
+      if (!activeRef.current) break;
+    }
+    loopRunningRef.current = false;
+    if (!activeRef.current) setMode('idle');
+  }
+
+  async function startConversation() {
+    setMicDenied(false);
+    try {
+      micRef.current = await VoiceMic.create(); // must be inside the tap gesture
+    } catch {
+      setMicDenied(true);
+      setShowText(true);
+      return;
+    }
+    activeRef.current = true;
+    startedAtRef.current = Date.now();
+    setMode('speaking');
+    await speak(greeting); // greeting plays first, then we start listening
+    if (activeRef.current) conversationLoop();
+  }
+
+  function endConversation() {
+    activeRef.current = false;
+    micRef.current?.cancel();
+    stopSpeaking();
+    micRef.current?.close();
+    micRef.current = null;
+    setMode('idle');
+  }
+
+  async function submitTyped(e: React.FormEvent) {
+    e.preventDefault();
+    const t = typed.trim();
+    if (!t) return;
+    setTyped('');
+    if (activeRef.current) {
+      // Hand the typed text to the running loop and stop the current listen.
+      pendingTypedRef.current = t;
+      micRef.current?.cancel();
+    } else {
+      // Not in hands-free mode → a one-off typed exchange.
+      await respondTo(t);
+      setMode('idle');
+    }
+  }
+
+  const statusText =
+    mode === 'listening'
+      ? 'Listening…'
+      : mode === 'thinking'
+        ? 'One moment…'
+        : mode === 'speaking'
+          ? 'Echo is speaking…'
+          : '';
 
   return (
     <div className="warm-mode min-h-screen flex flex-col">
-      {/* Header */}
       <header className="flex items-center justify-between px-5 py-3 border-b border-black/10">
         <span className="text-lg font-semibold">Echo</span>
         <button
           onClick={async () => {
+            endConversation();
             await endSession();
             router.push(`/caregiver/profiles/${profile.id}`);
           }}
@@ -129,7 +218,6 @@ export function CompanionClient({ profile }: { profile: Profile }) {
         </div>
       )}
 
-      {/* Conversation */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-5 space-y-4">
         {bubbles.map((b, i) => (
           <div
@@ -143,30 +231,43 @@ export function CompanionClient({ profile }: { profile: Profile }) {
             {b.text}
           </div>
         ))}
-        {pending && (
-          <div className="max-w-[60%] rounded-3xl bg-[var(--warm-card)] px-5 py-3 text-black/50">
-            …
-          </div>
-        )}
       </div>
 
-      {/* Push-to-talk + text fallback */}
       <div className="px-4 pb-6 pt-3 border-t border-black/10 flex flex-col items-center gap-4">
-        <MicButton
-          size="lg"
-          idleLabel="Talk to Echo"
-          onStart={() => stopSpeaking()}
-          onTranscript={(t) => send(t, 'voice')}
-        />
+        {mode === 'idle' ? (
+          <>
+            <button
+              onClick={startConversation}
+              className="flex h-40 w-40 flex-col items-center justify-center rounded-full bg-[var(--warm-accent)] text-[var(--warm-accent-fg)] text-xl font-semibold shadow-lg"
+            >
+              <MicGlyph />
+              <span className="mt-2">Start talking</span>
+            </button>
+            <p className="text-center text-base opacity-70">
+              Tap once, then just talk — no need to tap again.
+            </p>
+          </>
+        ) : (
+          <>
+            <StatusOrb mode={mode} />
+            <p className="text-lg">{statusText}</p>
+            <button
+              onClick={endConversation}
+              className="rounded-full border border-black/20 px-6 py-2 text-base"
+            >
+              End conversation
+            </button>
+          </>
+        )}
+
+        {micDenied && (
+          <p className="text-center text-base text-[var(--danger)]">
+            The microphone isn&apos;t available — you can type below instead.
+          </p>
+        )}
 
         {showText ? (
-          <form
-            className="w-full flex gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              send(typed, 'text');
-            }}
-          >
+          <form className="w-full flex gap-2" onSubmit={submitTyped}>
             <input
               value={typed}
               onChange={(e) => setTyped(e.target.value)}
@@ -176,7 +277,7 @@ export function CompanionClient({ profile }: { profile: Profile }) {
             />
             <button
               type="submit"
-              disabled={pending || !typed.trim()}
+              disabled={!typed.trim()}
               className="rounded-xl bg-[var(--warm-accent)] px-5 py-3 text-xl text-white disabled:opacity-50"
             >
               Send
@@ -193,5 +294,35 @@ export function CompanionClient({ profile }: { profile: Profile }) {
         </p>
       </div>
     </div>
+  );
+}
+
+function StatusOrb({ mode }: { mode: Mode }) {
+  const color =
+    mode === 'listening'
+      ? 'bg-[var(--warm-accent)]'
+      : mode === 'speaking'
+        ? 'bg-[var(--warm-accent)]'
+        : 'bg-black/20';
+  const animate = mode === 'listening' || mode === 'speaking' ? 'animate-pulse' : '';
+  return (
+    <div className={`flex h-40 w-40 items-center justify-center rounded-full ${color} ${animate} text-[var(--warm-accent-fg)] shadow-lg`}>
+      <MicGlyph />
+    </div>
+  );
+}
+
+function MicGlyph() {
+  return (
+    <svg width={40} height={40} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z" fill="currentColor" />
+      <path
+        d="M19 11a7 7 0 0 1-14 0M12 18v3"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+      />
+    </svg>
   );
 }
