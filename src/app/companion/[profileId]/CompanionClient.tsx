@@ -214,7 +214,7 @@ export function CompanionClient({ profile }: { profile: Profile }) {
 
       {handoff && (
         <div className="mx-4 mt-3 rounded-xl bg-[var(--warm-accent)]/15 px-5 py-3 text-lg">
-          I&apos;ve let {firstName}&apos;s caregiver know — they&apos;ll be along in a moment.
+          I&apos;ve let your caregiver know — they&apos;ll be here in a moment.
         </div>
       )}
 

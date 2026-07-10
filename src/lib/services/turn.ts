@@ -95,7 +95,7 @@ export async function runTurn({
   let reply: string;
   if (decision.handoff) {
     // Safety-critical OR uncertainty → safe holding response, no normal conversation.
-    reply = holdingResponse(profile);
+    reply = holdingResponse();
   } else {
     const memoryBlock = await MemoryService.retrieveForPrompt(db, profile.id);
     try {

@@ -73,15 +73,12 @@ HARD RULES:
   alert the caregiver. Never provide means or methods.`;
 }
 
-/** Safe holding response used when a turn is safety-critical or uncertain. */
-export function holdingResponse(profile: Profile): string {
-  return `I want to make sure you get the right help with that. I've let ${firstName(
-    profile.name,
-  )}'s caregiver know, and they'll be with you in just a moment. Let's take a slow breath together while we wait.`;
-}
-
-function firstName(name: string): string {
-  return name.split(' ')[0] || name;
+/**
+ * Safe holding response used when a turn is safety-critical or uncertain.
+ * Spoken directly TO the care recipient, so it uses second person ("your caregiver").
+ */
+export function holdingResponse(): string {
+  return `I want to make sure you get the right help with that, so I've let your caregiver know and they'll be with you in just a moment. Let's take a slow breath together — I'm right here with you.`;
 }
 
 /** SPEC 6.2 — assessment classifier system prompt (strict JSON). */
