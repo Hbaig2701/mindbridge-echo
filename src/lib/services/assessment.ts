@@ -46,8 +46,10 @@ const DISTRESS_PATTERNS = [
   /\blet me out\b/i,
   /\bwhere (?:am i|is my)\b/i,
   /\bi'?m (?:scared|frightened|terrified)\b/i,
-  /\bhelp me\b/i,
   /\bleave me alone\b/i,
+  // NOTE: bare "help me" was removed — it false-flagged benign asks like
+  // "can you help me remember my daughter's name". The LLM classifier judges
+  // genuine distress cries from context instead.
 ];
 
 interface PreFilter {
@@ -57,7 +59,7 @@ interface PreFilter {
   hardSafety: boolean; // certain enough to force safety_concern regardless of LLM
 }
 
-function ruledPreFilter(latest: string, recentUser: string[]): PreFilter {
+export function ruledPreFilter(latest: string, recentUser: string[]): PreFilter {
   const text = latest;
 
   if (SELF_HARM_PATTERNS.some((r) => r.test(text)))
