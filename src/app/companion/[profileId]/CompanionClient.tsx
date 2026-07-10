@@ -27,7 +27,6 @@ export function CompanionClient({ profile }: { profile: Profile }) {
   const [mode, setMode] = useState<Mode>('idle');
   const [typed, setTyped] = useState('');
   const [showText, setShowText] = useState(false);
-  const [handoff, setHandoff] = useState(false);
   const [micDenied, setMicDenied] = useState(false);
 
   const sessionIdRef = useRef<string | null>(null);
@@ -120,7 +119,6 @@ export function CompanionClient({ profile }: { profile: Profile }) {
     const data = await getReply(text);
     const reply = data.reply || "I'm right here with you. Let's take a slow breath together.";
     setBubbles((b) => [...b, { role: 'assistant', text: reply }]);
-    setHandoff(Boolean(data.handoff));
     setMode('speaking');
     await speak(reply);
   }
@@ -211,12 +209,6 @@ export function CompanionClient({ profile }: { profile: Profile }) {
           ← Caregiver
         </button>
       </header>
-
-      {handoff && (
-        <div className="mx-4 mt-3 rounded-xl bg-[var(--warm-accent)]/15 px-5 py-3 text-lg">
-          I&apos;ve let your caregiver know — they&apos;ll be here in a moment.
-        </div>
-      )}
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-5 space-y-4">
         {bubbles.map((b, i) => (

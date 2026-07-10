@@ -186,5 +186,6 @@ export interface MessageTurnResponse {
   reply: string;
   assessment: AssessmentResult;
   flags: TurnFlag[];
-  handoff: boolean; // true when the companion stepped back for a human
+  handoff: boolean; // deprecated — companion no longer goes silent; always false
+  alertedCaregiver?: boolean; // a safety flag was raised in the background this turn
 }

@@ -9,7 +9,7 @@ import { AssessmentService, type TranscriptTurn } from './assessment';
 import { SafetyService } from './safety';
 import { ConversationService } from './conversation';
 import { MemoryService } from './memory';
-import { holdingResponse } from '@/lib/prompts';
+import { holdingResponse, safetyGuidanceFor } from '@/lib/prompts';
 import type { AssessmentResult, InputChannel, MessageTurnResponse, Profile } from '@/lib/types';
 
 const MAX_RESPITE_GAP_SECONDS = 180; // don't count long idle gaps as respite
@@ -91,12 +91,13 @@ export async function runTurn({
     );
   }
 
-  // 4/5. Build the reply.
+  // 4/5. Build the reply. The companion ALWAYS responds — a caregiver flag never
+  // interrupts or ends the conversation. When care is needed, we shape the reply with
+  // safety guidance (refuse medical/command, gently support on self-harm) rather than
+  // going silent.
+  const safetyNote = safetyGuidanceFor(assessment);
   let reply: string;
-  if (decision.handoff) {
-    // Safety-critical OR uncertainty → safe holding response, no normal conversation.
-    reply = holdingResponse();
-  } else {
+  {
     const memoryBlock = await MemoryService.retrieveForPrompt(db, profile.id);
     try {
       reply = await ConversationService.reply({
@@ -105,11 +106,11 @@ export async function runTurn({
         distressed: assessment.distress,
         recent,
         latest: content,
+        safetyNote,
       });
     } catch {
-      // Reliability: never dead-end. Fall back to a warm holding line.
-      reply =
-        "I'm right here with you. Let's take a slow breath together — tell me about something that makes you smile.";
+      // Reliability: never dead-end. Fall back to a warm, safe line.
+      reply = holdingResponse();
     }
   }
 
@@ -150,6 +151,9 @@ export async function runTurn({
     reply,
     assessment,
     flags: decision.flags,
-    handoff: decision.handoff,
+    // The companion never hands off / goes silent now; a flag is raised in the
+    // background. `alertedCaregiver` is informational for the caller.
+    handoff: false,
+    alertedCaregiver: decision.alertedCaregiver,
   };
 }

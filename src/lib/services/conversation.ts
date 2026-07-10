@@ -13,11 +13,12 @@ interface ReplyArgs {
   distressed: boolean;
   recent: TranscriptTurn[]; // prior turns, oldest→newest, excluding latest
   latest: string;
+  safetyNote?: string | null; // extra care guidance when a caregiver flag is raised this turn
 }
 
 export const ConversationService = {
-  async reply({ profile, memoryBlock, distressed, recent, latest }: ReplyArgs): Promise<string> {
-    const system = companionSystemPrompt({ profile, memoryBlock, distressed });
+  async reply({ profile, memoryBlock, distressed, recent, latest, safetyNote }: ReplyArgs): Promise<string> {
+    const system = companionSystemPrompt({ profile, memoryBlock, distressed, safetyNote });
 
     const history: Anthropic.MessageParam[] = recent.slice(-10).map((t) => ({
       role: t.role === 'user' ? 'user' : 'assistant',
