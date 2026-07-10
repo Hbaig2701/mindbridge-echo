@@ -156,6 +156,11 @@ export const AssessmentService = {
       confidence: llm.confidence,
     };
 
+    // Fail safe: a non-'none' safety_type MUST raise safety_concern. Otherwise an
+    // inconsistent classifier object like {safety_concern:false, safety_type:'self_harm'}
+    // would only flag "uncertainty" and never alert the caregiver to the real risk.
+    if (merged.safety_type !== 'none') merged.safety_concern = true;
+
     // uncertainty must be true whenever a safety concern fires.
     if (merged.safety_concern || merged.safety_type !== 'none') merged.uncertainty = true;
 

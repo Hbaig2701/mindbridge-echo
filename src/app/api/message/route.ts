@@ -33,6 +33,12 @@ export async function POST(req: Request) {
   if (!session) {
     return NextResponse.json({ error: 'Session not found' }, { status: 404 });
   }
+  if (session.mode !== 'care_recipient') {
+    return NextResponse.json({ error: 'Not a care-recipient session' }, { status: 400 });
+  }
+  if (session.ended_at) {
+    return NextResponse.json({ error: 'Session has ended' }, { status: 409 });
+  }
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -43,6 +49,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
   }
 
+  const inputChannel = body.inputChannel === 'voice' ? 'voice' : 'text';
+
   try {
     const result = await runTurn({
       db: supabase,
@@ -50,7 +58,7 @@ export async function POST(req: Request) {
       sessionId,
       profile: profile as Profile,
       content,
-      inputChannel: body.inputChannel ?? 'text',
+      inputChannel,
     });
     return NextResponse.json(result);
   } catch (err) {

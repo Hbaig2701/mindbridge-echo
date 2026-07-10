@@ -8,6 +8,7 @@
 import { NextResponse } from 'next/server';
 import type { EmailOtpType } from '@supabase/supabase-js';
 import { createServerClient } from '@/lib/supabase/server';
+import { safeInternalPath } from '@/lib/url';
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -17,9 +18,9 @@ export async function GET(request: Request) {
   const type = params.get('type') as EmailOtpType | null;
   const code = params.get('code');
 
-  // Only allow same-origin relative redirects to avoid open-redirect abuse.
-  const rawNext = params.get('next') ?? '/onboarding/welcome';
-  const next = rawNext.startsWith('/') ? rawNext : '/onboarding/welcome';
+  // Only allow same-origin absolute-path redirects to avoid open-redirect abuse
+  // (rejects protocol-relative "//evil.com" and "/\evil.com").
+  const next = safeInternalPath(params.get('next'), '/onboarding/welcome');
 
   const supabase = await createServerClient();
 

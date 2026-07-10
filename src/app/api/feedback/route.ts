@@ -39,14 +39,20 @@ export async function POST(req: Request) {
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Derive memory: worked / didnt_work / caregiver_note.
-  await MemoryService.deriveFromFeedback(supabase, {
-    userId: user.id,
-    profileId: session.profile_id,
-    sessionId: body.sessionId,
-    score,
-    verbalNote,
-  });
+  // Derive memory: worked / didnt_work / caregiver_note. The feedback is already
+  // saved — if memory derivation fails, don't turn a saved feedback into a 500
+  // (which would prompt the caregiver to resubmit and double-insert).
+  try {
+    await MemoryService.deriveFromFeedback(supabase, {
+      userId: user.id,
+      profileId: session.profile_id,
+      sessionId: body.sessionId,
+      score,
+      verbalNote,
+    });
+  } catch (e) {
+    console.error('[api/feedback] memory derivation failed (feedback still saved):', e);
+  }
 
   return NextResponse.json({ ok: true });
 }

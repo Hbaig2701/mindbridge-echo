@@ -31,15 +31,19 @@ export async function runTurn({
   content,
   inputChannel = 'text',
 }: RunTurnArgs): Promise<MessageTurnResponse> {
-  // 0. Load recent conversation for context (before inserting the new message).
+  // 0. Load the MOST RECENT 40 messages for context (before inserting the new one).
+  // Fetch newest-first, then reverse to chronological order so `recent` ends with the
+  // latest turn and `lastCreatedAt` is the true previous message (not the 40th-oldest).
   const { data: priorRows } = await db
     .from('messages')
     .select('role, content, created_at')
     .eq('session_id', sessionId)
-    .order('created_at', { ascending: true })
+    .order('created_at', { ascending: false })
     .limit(40);
 
-  const prior = (priorRows ?? []) as { role: string; content: string; created_at: string }[];
+  const prior = ((priorRows ?? []) as { role: string; content: string; created_at: string }[])
+    .slice()
+    .reverse();
   const recent: TranscriptTurn[] = prior
     .filter((m) => m.role === 'user' || m.role === 'assistant')
     .map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content }));

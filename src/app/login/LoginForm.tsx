@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { safeInternalPath } from '@/lib/url';
 import { Button, Input, Label, Alert } from '@/components/ui';
 
 export function LoginForm({ redirect, initialError }: { redirect?: string; initialError?: string }) {
@@ -47,7 +48,7 @@ export function LoginForm({ redirect, initialError }: { redirect?: string; initi
       return;
     }
 
-    router.push(redirect || '/caregiver');
+    router.push(safeInternalPath(redirect, '/caregiver'));
     router.refresh();
   }
 

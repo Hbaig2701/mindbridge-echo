@@ -32,14 +32,23 @@ export async function POST(req: Request) {
       ? Math.round(body.companionHelpful)
       : null;
 
+  // Coerce + bound the numeric minutes so non-numeric strings can't 500 the insert
+  // and negative/absurd values can't skew the progress trends.
+  const nonNegMinutes = (v: unknown): number | null => {
+    if (v == null || v === '') return null;
+    const n = Number(v);
+    if (!Number.isFinite(n) || n < 0) return null;
+    return Math.min(n, 24 * 60); // cap at a day
+  };
+
   const { error } = await supabase.from('progress_logs').insert({
     user_id: user.id,
     profile_id: body.profileId,
     session_id: body.sessionId ?? null,
     source: 'caregiver',
     agitation_episode: Boolean(body.agitationEpisode),
-    time_to_calm_min: body.timeToCalmMin ?? null,
-    respite_min: body.respiteMin ?? null,
+    time_to_calm_min: nonNegMinutes(body.timeToCalmMin),
+    respite_min: nonNegMinutes(body.respiteMin),
     companion_helpful: helpful,
     note: (body.note ?? '').trim() || null,
   });

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createServerClient } from '@/lib/supabase/server';
 import { Badge, Button, Card } from '@/components/ui';
-import type { Flag, LifeStory, Profile, Session } from '@/lib/types';
+import { emptyLifeStory, type Flag, type LifeStory, type Profile, type Session } from '@/lib/types';
 
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {
@@ -58,7 +58,9 @@ export default async function ProfileDetailPage({
     .single();
   if (!profileRow) notFound();
   const profile = profileRow as Profile;
-  const story: LifeStory = profile.life_story;
+  // A profile row can carry the DB default `{}` (or a partial object); merge over an
+  // empty life story so nested access (story.background.*, story.work.*) never crashes.
+  const story: LifeStory = { ...emptyLifeStory(), ...(profile.life_story ?? {}) };
 
   const [{ data: sessionRows }, { data: flagRows }] = await Promise.all([
     supabase

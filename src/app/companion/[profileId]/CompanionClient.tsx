@@ -30,6 +30,7 @@ export function CompanionClient({ profile }: { profile: Profile }) {
   const [micDenied, setMicDenied] = useState(false);
 
   const sessionIdRef = useRef<string | null>(null);
+  const sessionStartedRef = useRef(false);
   const micRef = useRef<VoiceMic | null>(null);
   const activeRef = useRef(false);
   const loopRunningRef = useRef(false);
@@ -39,7 +40,9 @@ export function CompanionClient({ profile }: { profile: Profile }) {
 
   // Create the session on mount (no gesture needed). Greeting is spoken on first tap.
   useEffect(() => {
-    let cancelled = false;
+    // Guard against React StrictMode double-invoking this effect (dev) → 2 sessions.
+    if (sessionStartedRef.current) return;
+    sessionStartedRef.current = true;
     (async () => {
       try {
         const res = await fetch('/api/session', {
@@ -48,13 +51,12 @@ export function CompanionClient({ profile }: { profile: Profile }) {
           body: JSON.stringify({ profileId: profile.id, mode: 'care_recipient' }),
         });
         const data = await res.json();
-        if (!cancelled && res.ok) sessionIdRef.current = data.sessionId;
+        if (res.ok) sessionIdRef.current = data.sessionId;
       } catch {
         /* replies will fall back gracefully if the session is missing */
       }
     })();
     return () => {
-      cancelled = true;
       activeRef.current = false;
       micRef.current?.cancel();
       stopSpeaking();
@@ -113,10 +115,13 @@ export function CompanionClient({ profile }: { profile: Profile }) {
   }
 
   // Add the user's words, get Echo's reply, and speak it (awaits until she finishes).
-  async function respondTo(text: string) {
+  // When `abortIfEnded` (the hands-free loop), bail after the network wait if the
+  // conversation was ended mid-flight so Echo doesn't start talking after "End".
+  async function respondTo(text: string, abortIfEnded = false) {
     setBubbles((b) => [...b, { role: 'user', text }]);
     setMode('thinking');
     const data = await getReply(text);
+    if (abortIfEnded && !activeRef.current) return;
     const reply = data.reply || "I'm right here with you. Let's take a slow breath together.";
     setBubbles((b) => [...b, { role: 'assistant', text: reply }]);
     setMode('speaking');
@@ -127,17 +132,35 @@ export function CompanionClient({ profile }: { profile: Profile }) {
   async function conversationLoop() {
     if (loopRunningRef.current) return;
     loopRunningRef.current = true;
+    let fastEmpties = 0; // guard against a dead mic spinning the loop
     while (activeRef.current) {
       setMode('listening');
+      const t0 = Date.now();
       const spoken = (await micRef.current?.listen()) ?? '';
+      const elapsed = Date.now() - t0;
       let text = spoken;
       if (!text && pendingTypedRef.current) {
         text = pendingTypedRef.current;
         pendingTypedRef.current = null;
       }
       if (!activeRef.current) break;
-      if (!text) continue; // silence — keep listening, no phantom messages
-      await respondTo(text);
+      if (!text) {
+        // A real "no speech" listen takes seconds. If listen() keeps returning
+        // instantly, the mic stream has died — stop spinning and fall back to text.
+        if (elapsed < 400) {
+          if (++fastEmpties >= 3) {
+            setMicDenied(true);
+            setShowText(true);
+            break;
+          }
+          await new Promise((r) => setTimeout(r, 400));
+        } else {
+          fastEmpties = 0;
+        }
+        continue; // silence — keep listening, no phantom messages
+      }
+      fastEmpties = 0;
+      await respondTo(text, true);
       if (!activeRef.current) break;
     }
     loopRunningRef.current = false;

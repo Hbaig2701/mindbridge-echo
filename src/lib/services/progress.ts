@@ -177,7 +177,11 @@ export const ProgressService = {
 };
 
 function csvCell(value: string | number): string {
-  const s = String(value ?? '');
-  if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  let s = String(value ?? '');
+  // Neutralize spreadsheet formula injection: a cell a spreadsheet would evaluate
+  // (starts with = + - @ or a control char) gets a leading apostrophe so Excel/Sheets
+  // treat it as text. Caregiver notes are free text and could otherwise run formulas.
+  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
 }
