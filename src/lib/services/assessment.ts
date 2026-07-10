@@ -59,7 +59,7 @@ interface PreFilter {
   hardSafety: boolean; // certain enough to force safety_concern regardless of LLM
 }
 
-export function ruledPreFilter(latest: string, recentUser: string[]): PreFilter {
+function ruledPreFilter(latest: string, recentUser: string[]): PreFilter {
   const text = latest;
 
   if (SELF_HARM_PATTERNS.some((r) => r.test(text)))

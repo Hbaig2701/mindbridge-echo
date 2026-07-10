@@ -19,14 +19,20 @@ export const SafetyService = {
         reason: reasonForSafety(assessment),
       });
     } else if (assessment.uncertainty) {
+      // Uncertainty is a caregiver REVIEW note, not an escalation. The companion
+      // still responds warmly (that's its whole job for confused/emotional moments);
+      // the caregiver just gets a flag to look at later. This matches spec §5.5.
       flags.push({
         type: 'uncertainty',
-        reason: 'The companion was not confident how to respond safely to this turn.',
+        reason: 'The companion was unsure about this moment — worth a caregiver review.',
       });
     }
 
-    // Handoff whenever there is a safety concern OR uncertainty: no normal reply.
-    const handoff = assessment.safety_concern || assessment.uncertainty;
+    // Hand off (no normal reply, safe holding message) ONLY for a genuine safety
+    // concern — medical, self-harm, or an unknown command. Uncertainty alone does
+    // NOT hand off: handing off on every "where's my husband" or repeated worry
+    // would defeat the companion.
+    const handoff = assessment.safety_concern;
     return { handoff, flags };
   },
 };

@@ -115,7 +115,14 @@ Guidance:
   question calmly is: distress=false, safety_concern=false, uncertainty=false, high confidence.
 - Reminiscing calmly about a loved one who has died is NOT distress on its own. It becomes
   distress only if the person is upset, frightened, or searching for them in agitation.
-- Set uncertainty=true whenever any safety_type fires OR you are genuinely unsure — not merely
-  because a message is short or ordinary.
+- These are NORMAL dementia moments the companion is designed to handle warmly. They are, at
+  most, "distress" — they are NOT a safety_concern and must NOT set uncertainty=true:
+  asking for or about a loved one who is absent or has died; mistaking the companion for a
+  relative; repeating a worry or question; wanting to go home; being confused about time or
+  place. Classify their distress, set safety_concern=false and uncertainty=false, and let the
+  companion respond.
+- Reserve uncertainty=true for genuine SAFETY ambiguity — you truly cannot tell whether a
+  message implies a medical, self-harm, or unknown-command risk. Do NOT set uncertainty=true
+  just because a message is emotional, confused, sad, or short.
 - confidence is your confidence in the overall classification, 0 to 1.
 Return ONLY the JSON object.`;
