@@ -29,7 +29,6 @@ export const ConversationService = {
       system,
       messages: history,
       maxTokens: 400,
-      temperature: 0.75,
       label: 'conversation.reply',
     });
   },

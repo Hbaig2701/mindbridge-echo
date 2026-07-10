@@ -123,7 +123,6 @@ export const AssessmentService = {
         system: ASSESSMENT_SYSTEM_PROMPT,
         messages: [{ role: 'user', content: buildClassifierInput(recent, latest) }],
         maxTokens: 200,
-        temperature: 0,
         label: 'assessment.classify',
       });
       llm = safeParse(raw);
