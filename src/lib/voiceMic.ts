@@ -77,19 +77,29 @@ export class VoiceMic {
     };
 
     return new Promise<string>((resolve) => {
+      let resolved = false;
+      const done = (val: string) => {
+        if (!resolved) {
+          resolved = true;
+          resolve(val);
+        }
+      };
+
       const startedAt = performance.now();
       let lastVoicedAt = 0;
       let voicedRunStart = 0;
       let spoke = false;
+      let recording = false; // MediaRecorder is started ONLY once speech begins, so the
+      // clip contains just the patient's utterance — not Echo's voice or leading silence.
 
       recorder.onstop = async () => {
         if (this.cancelled || !spoke) {
-          resolve('');
+          done('');
           return;
         }
         const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
         if (blob.size === 0) {
-          resolve('');
+          done('');
           return;
         }
         try {
@@ -98,19 +108,29 @@ export class VoiceMic {
           form.append('audio', blob, `recording.${ext}`);
           const res = await fetch('/api/transcribe', { method: 'POST', body: form });
           const result = await res.json();
-          resolve(res.ok ? String(result?.text ?? '').trim() : '');
+          done(res.ok ? String(result?.text ?? '').trim() : '');
         } catch {
-          resolve('');
+          done('');
+        }
+      };
+
+      // End the utterance: stop the recorder (→ onstop transcribes) if we ever started
+      // it, otherwise resolve empty directly (nothing was recorded).
+      const finishListen = () => {
+        if (recording) {
+          try {
+            recorder.stop();
+          } catch {
+            done('');
+          }
+        } else {
+          done('');
         }
       };
 
       const tick = () => {
         if (this.cancelled) {
-          try {
-            recorder.stop();
-          } catch {
-            /* ignore */
-          }
+          finishListen();
           return;
         }
         this.analyser.getByteTimeDomainData(this.data);
@@ -126,8 +146,18 @@ export class VoiceMic {
         if (elapsed > START_GRACE_MS) {
           if (rms > SPEAKING_RMS) {
             if (voicedRunStart === 0) voicedRunStart = now;
+            // Begin capturing at the first voiced frame (start of the utterance).
+            if (!recording) {
+              try {
+                recorder.start();
+                recording = true;
+              } catch {
+                done('');
+                return;
+              }
+            }
             if (now - voicedRunStart >= VOICED_RUN_MS) {
-              if (!spoke) onSpeechStart?.(); // fire once, the instant speech begins
+              if (!spoke) onSpeechStart?.(); // fire once, the instant speech is sustained
               spoke = true;
               lastVoicedAt = now;
             }
@@ -141,22 +171,11 @@ export class VoiceMic {
         const endedByMax = elapsed > MAX_RECORD_MS;
 
         if (endedBySilence || endedByNoSpeech || endedByMax) {
-          try {
-            recorder.stop();
-          } catch {
-            /* ignore */
-          }
+          finishListen();
           return;
         }
         requestAnimationFrame(tick);
       };
-
-      try {
-        recorder.start();
-      } catch {
-        resolve('');
-        return;
-      }
       requestAnimationFrame(tick);
     });
   }

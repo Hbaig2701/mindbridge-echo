@@ -56,12 +56,15 @@ const DISTRESS_PATTERNS = [
 // concerns on their own — the companion still responds warmly — but they raise a
 // care_need flag so the caregiver is told. (Ordered: first match wins.)
 const CARE_NEED_PATTERNS: [RegExp, CareNeedType][] = [
-  [/\b(bathroom|toilet|the loo|need to (?:pee|wee|use the)|use the (?:bathroom|toilet|restroom)|wet myself)\b/i, 'toilet'],
-  [/\b(hungry|want (?:something to eat|to eat|food)|i want food|can i (?:eat|have something to eat)|starving)\b/i, 'hunger'],
-  [/\b(thirsty|want (?:a drink|some water|water)|can i have (?:a drink|water)|so dry)\b/i, 'thirst'],
-  [/\b(in pain|it hurts|my (?:head|back|stomach|tummy|leg|arm|foot|hip|knee|chest) (?:hurts|aches)|aching|so sore)\b/i, 'pain'],
-  [/\b(i'?m (?:cold|freezing|hot|too warm)|too cold|too hot|uncomfortable)\b/i, 'discomfort'],
-  [/\b(i'?m (?:tired|exhausted|sleepy)|want to (?:lie down|rest|go to bed|sleep)|so tired)\b/i, 'tired'],
+  // "use the" is scoped to bathroom words so "I need to use the phone" doesn't match.
+  [/\b(bathroom|toilet|the loo|need to (?:pee|wee)|use the (?:bathroom|toilet|restroom)|wet myself)\b/i, 'toilet'],
+  [/\b(hungry|starving|want (?:something to eat|to eat|food)|i want food|can i (?:eat|have something to eat))\b/i, 'hunger'],
+  [/\b(thirsty|so dry|(?:want|can i have|i'?d like|give me|get me|bring me)\s+(?:a drink|(?:some |a glass of )?water))\b/i, 'thirst'],
+  // bare "aching" removed — it matched emotional "aching heart"; require a body part.
+  [/\b(in pain|it hurts|my (?:head|back|stomach|tummy|leg|arm|foot|hip|knee|chest) (?:hurts|aches)|so sore)\b/i, 'pain'],
+  // handle both "I'm cold" and "I am cold".
+  [/\b(i(?:'?m| am) (?:cold|freezing|hot|too warm)|too cold|too hot|uncomfortable)\b/i, 'discomfort'],
+  [/\b(i(?:'?m| am) (?:tired|exhausted|sleepy)|so tired|want to (?:lie down|rest|go to bed|sleep))\b/i, 'tired'],
 ];
 
 function detectCareNeed(text: string): { care_need: boolean; care_need_type: CareNeedType } {
