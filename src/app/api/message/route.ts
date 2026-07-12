@@ -73,6 +73,8 @@ export async function POST(req: Request) {
           distress_type: 'none',
           safety_concern: false,
           safety_type: 'none',
+          care_need: false,
+          care_need_type: 'none',
           uncertainty: true,
           confidence: 0,
         },

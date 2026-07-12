@@ -37,6 +37,8 @@ export function CompanionClient({ profile }: { profile: Profile }) {
   const pendingTypedRef = useRef<string | null>(null);
   const startedAtRef = useRef<number>(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const turnRef = useRef(0); // increments each turn; guards stale speak() callbacks
+  const speakingRef = useRef(false); // is Echo's voice currently playing?
 
   // Create the session on mount (no gesture needed). Greeting is spoken on first tap.
   useEffect(() => {
@@ -105,6 +107,8 @@ export function CompanionClient({ profile }: { profile: Profile }) {
           distress_type: 'none',
           safety_concern: false,
           safety_type: 'none',
+          care_need: false,
+          care_need_type: 'none',
           uncertainty: false,
           confidence: 0,
         },
@@ -128,15 +132,29 @@ export function CompanionClient({ profile }: { profile: Profile }) {
     await speak(reply);
   }
 
-  // The hands-free loop: listen → respond → listen → … until ended.
+  // Speak a reply WITHOUT blocking the loop, so the next listen() runs concurrently
+  // with Echo's voice (that's what makes barge-in possible). Guards the mode flip
+  // with the turn counter so a stale finish can't overwrite a newer turn.
+  function speakReply(reply: string, myTurn: number) {
+    setMode('speaking');
+    speakingRef.current = true;
+    speak(reply).then(() => {
+      speakingRef.current = false;
+      if (activeRef.current && turnRef.current === myTurn) setMode('listening');
+    });
+  }
+
+  // The hands-free loop: always listening (even while Echo speaks). If the patient
+  // starts talking, Echo is cut off instantly (barge-in) and we respond to them.
   async function conversationLoop() {
     if (loopRunningRef.current) return;
     loopRunningRef.current = true;
     let fastEmpties = 0; // guard against a dead mic spinning the loop
     while (activeRef.current) {
-      setMode('listening');
+      if (!speakingRef.current) setMode('listening');
       const t0 = Date.now();
-      const spoken = (await micRef.current?.listen()) ?? '';
+      // onSpeechStart cuts Echo off the moment the patient begins speaking.
+      const spoken = (await micRef.current?.listen(() => stopSpeaking())) ?? '';
       const elapsed = Date.now() - t0;
       let text = spoken;
       if (!text && pendingTypedRef.current) {
@@ -160,10 +178,18 @@ export function CompanionClient({ profile }: { profile: Profile }) {
         continue; // silence — keep listening, no phantom messages
       }
       fastEmpties = 0;
-      await respondTo(text, true);
-      if (!activeRef.current) break;
+      stopSpeaking(); // ensure Echo is silent before we respond (barge-in / typed)
+      const myTurn = ++turnRef.current;
+      setBubbles((b) => [...b, { role: 'user', text }]);
+      setMode('thinking');
+      const data = await getReply(text);
+      if (!activeRef.current || turnRef.current !== myTurn) continue;
+      const reply = data.reply || "I'm right here with you. Let's take a slow breath together.";
+      setBubbles((b) => [...b, { role: 'assistant', text: reply }]);
+      speakReply(reply, myTurn); // fire-and-forget; loop keeps listening for barge-in
     }
     loopRunningRef.current = false;
+    speakingRef.current = false;
     if (!activeRef.current) setMode('idle');
   }
 
@@ -178,13 +204,16 @@ export function CompanionClient({ profile }: { profile: Profile }) {
     }
     activeRef.current = true;
     startedAtRef.current = Date.now();
-    setMode('speaking');
-    await speak(greeting); // greeting plays first, then we start listening
-    if (activeRef.current) conversationLoop();
+    // Speak the greeting fire-and-forget and start the loop immediately, so the
+    // patient can even interrupt the greeting to jump in.
+    speakReply(greeting, ++turnRef.current);
+    conversationLoop();
   }
 
   function endConversation() {
     activeRef.current = false;
+    turnRef.current++; // invalidate any pending speak() finish callback
+    speakingRef.current = false;
     micRef.current?.cancel();
     stopSpeaking();
     micRef.current?.close();

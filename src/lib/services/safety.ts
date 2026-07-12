@@ -27,7 +27,16 @@ export const SafetyService = {
       });
     }
 
-    return { flags, alertedCaregiver: assessment.safety_concern };
+    // A physical/comfort need raises its own flag (in addition to any above) so the
+    // caregiver is told the person needs attention — hunger, thirst, toilet, pain, etc.
+    if (assessment.care_need) {
+      flags.push({
+        type: 'care_need',
+        reason: `The person expressed a physical/comfort need (${assessment.care_need_type}) — they need caregiver attention.`,
+      });
+    }
+
+    return { flags, alertedCaregiver: assessment.safety_concern || assessment.care_need };
   },
 };
 

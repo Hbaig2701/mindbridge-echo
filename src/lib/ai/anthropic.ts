@@ -23,10 +23,18 @@ export function anthropicModel(): string {
   return process.env.ANTHROPIC_MODEL || 'claude-sonnet-5';
 }
 
+// The safety/distress classifier runs on every turn and adds to response latency.
+// It's a simple structured-JSON task, so it defaults to a fast, cheap model (Haiku)
+// rather than the companion model. Override with ANTHROPIC_ASSESSMENT_MODEL.
+export function assessmentModel(): string {
+  return process.env.ANTHROPIC_ASSESSMENT_MODEL || 'claude-haiku-4-5';
+}
+
 export interface CompletionArgs {
   system: string;
   messages: Anthropic.MessageParam[];
   maxTokens?: number;
+  model?: string; // override the model (e.g. a fast classifier model)
   label: string;
 }
 
@@ -35,12 +43,13 @@ export async function complete({
   system,
   messages,
   maxTokens = 700,
+  model,
   label,
 }: CompletionArgs): Promise<string> {
   const res = await withRetry(
     () =>
       anthropic().messages.create({
-        model: anthropicModel(),
+        model: model ?? anthropicModel(),
         max_tokens: maxTokens,
         system,
         messages,

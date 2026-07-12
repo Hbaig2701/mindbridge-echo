@@ -55,7 +55,8 @@ class WhisperSTT implements SpeechToText {
         openai().audio.transcriptions.create({
           file,
           model: 'whisper-1',
-          language: 'en',
+          // No language lock — auto-detect so bilingual patients (e.g. English +
+          // Spanish) are transcribed in whatever language they actually speak.
           response_format: 'verbose_json',
           temperature: 0,
         }),

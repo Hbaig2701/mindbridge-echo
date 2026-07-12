@@ -5,7 +5,8 @@
 // Robustness mirrors MicButton: silence detection only arms after sustained speech,
 // ignores the opening moment, and we never send silence to Whisper.
 
-const SILENCE_MS = 1500; // trailing pause that ends a turn
+const SILENCE_MS = 1800; // trailing pause that ends a turn (generous, so slow/paused
+// dementia speech isn't cut off mid-thought — Kevin's "latter half doesn't register")
 const START_GRACE_MS = 400; // ignore the first moment (turn-taking transient)
 const VOICED_RUN_MS = 160; // sustained voiced audio required to count as speech
 const NO_SPEECH_TIMEOUT_MS = 10000; // give up a silent listen after this (then loop re-listens)
@@ -48,8 +49,12 @@ export class VoiceMic {
     }
   }
 
-  /** Record one utterance. Resolves with the transcript, or '' for silence/cancel. */
-  async listen(): Promise<string> {
+  /**
+   * Record one utterance. Resolves with the transcript, or '' for silence/cancel.
+   * `onSpeechStart` fires ONCE the instant sustained speech is detected — used for
+   * barge-in (stop Echo the moment the patient starts talking, before they finish).
+   */
+  async listen(onSpeechStart?: () => void): Promise<string> {
     this.cancelled = false;
     if (this.audioCtx.state === 'suspended') {
       try {
@@ -122,6 +127,7 @@ export class VoiceMic {
           if (rms > SPEAKING_RMS) {
             if (voicedRunStart === 0) voicedRunStart = now;
             if (now - voicedRunStart >= VOICED_RUN_MS) {
+              if (!spoke) onSpeechStart?.(); // fire once, the instant speech begins
               spoke = true;
               lastVoicedAt = now;
             }

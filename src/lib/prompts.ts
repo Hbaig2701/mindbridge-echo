@@ -1,6 +1,6 @@
 // Prompt builders. Structure follows SPEC §6 closely.
 
-import type { LifeStory, Profile, SafetyType } from './types';
+import type { CareNeedType, LifeStory, Profile, SafetyType } from './types';
 
 /** Compact, human-readable rendering of a profile's life story for the prompt. */
 export function renderLifeStory(profile: Profile): string {
@@ -65,6 +65,9 @@ HOW TO SPEAK:
 - Your words are READ ALOUD to them. Write plain spoken sentences only — no emoji, no symbols,
   no stage directions, no markdown. Instead of "do you remember…", open with an invitation
   ("Tell me about…", "I'd love to hear about…").
+- SPEAK THEIR LANGUAGE. Reply in the same language they speak to you in. If they switch
+  languages, switch with them. Their profile lists the languages they know above — be ready
+  to comfort them in any of those.
 
 GENTLE GUIDANCE FOR HARD MOMENTS (draw on their profile):
 - If they ask for, or speak as if alive, someone who has died: do NOT announce or insist
@@ -110,6 +113,8 @@ export function holdingResponse(): string {
 export function safetyGuidanceFor(a: {
   safety_concern: boolean;
   safety_type: SafetyType;
+  care_need: boolean;
+  care_need_type: CareNeedType;
   uncertainty: boolean;
 }): string | null {
   if (a.safety_concern) {
@@ -124,6 +129,9 @@ export function safetyGuidanceFor(a: {
         return 'Something here may need a person. Respond gently, reassure them their caregiver has been let know, and stay warmly present.';
     }
   }
+  if (a.care_need) {
+    return `They've expressed a physical or comfort need (${a.care_need_type}). You CANNOT bring them food or water, take them to the bathroom, or fetch anything yourself — do NOT promise to ("let's get you a snack" over-promises). Warmly acknowledge how they feel, tell them you've let their caregiver know so someone will come help them soon, and gently stay with them until then.`;
+  }
   if (a.uncertainty) {
     return "You're not fully sure how to help with this. That's okay — respond gently and warmly, let them know their caregiver has been told, and stay present. Don't guess at anything important.";
   }
@@ -136,6 +144,7 @@ and the latest care-recipient message. Classify ONLY from the words, not tone/au
 Return ONLY a JSON object with exactly these keys and no prose:
 { "distress": bool, "distress_type": "none|agitation|repetition_loop|confusion|distress_other",
   "safety_concern": bool, "safety_type": "none|medical|self_harm|unknown_command|other",
+  "care_need": bool, "care_need_type": "none|hunger|thirst|toilet|pain|discomfort|tired|other",
   "uncertainty": bool, "confidence": 0..1 }
 
 Guidance:
@@ -147,6 +156,11 @@ Guidance:
 - "agitation": anger, fear, feeling trapped, wanting to leave, escalating upset.
 - "repetition_loop": the same distressed question/idea repeated across recent turns.
 - "confusion": disoriented about time/place/people in a way that is distressing.
+- "care_need": the person expresses a physical or comfort need the caregiver should attend to —
+  hungry, thirsty, needs the toilet, in pain, too cold/hot, or tired/wants to rest. Set
+  care_need=true with the matching care_need_type. This is NOT a safety_concern on its own
+  (unless it's also medical/self-harm), and it can co-occur with distress. The companion will
+  still respond warmly; care_need just tells the caregiver the person needs attention.
 - BE CONSERVATIVE. Ordinary, calm, or positive conversation is NOT distress and NOT a safety
   concern. A friendly greeting, a compliment, a memory, a simple request, or answering a
   question calmly is: distress=false, safety_concern=false, uncertainty=false, high confidence.

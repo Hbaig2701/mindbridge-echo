@@ -3,9 +3,9 @@
 // LLM classifier (prompt 6.2) produces the final structured JSON. This is a
 // separate Claude call from the reply — deterministic, cleanly loggable, measurable.
 
-import { complete } from '@/lib/ai/anthropic';
+import { complete, assessmentModel } from '@/lib/ai/anthropic';
 import { ASSESSMENT_SYSTEM_PROMPT } from '@/lib/prompts';
-import type { AssessmentResult, DistressType, SafetyType } from '@/lib/types';
+import type { AssessmentResult, CareNeedType, DistressType, SafetyType } from '@/lib/types';
 
 export interface TranscriptTurn {
   role: 'user' | 'assistant';
@@ -52,35 +52,57 @@ const DISTRESS_PATTERNS = [
   // genuine distress cries from context instead.
 ];
 
+// Physical / comfort needs the caregiver should attend to. These are NOT safety
+// concerns on their own — the companion still responds warmly — but they raise a
+// care_need flag so the caregiver is told. (Ordered: first match wins.)
+const CARE_NEED_PATTERNS: [RegExp, CareNeedType][] = [
+  [/\b(bathroom|toilet|the loo|need to (?:pee|wee|use the)|use the (?:bathroom|toilet|restroom)|wet myself)\b/i, 'toilet'],
+  [/\b(hungry|want (?:something to eat|to eat|food)|i want food|can i (?:eat|have something to eat)|starving)\b/i, 'hunger'],
+  [/\b(thirsty|want (?:a drink|some water|water)|can i have (?:a drink|water)|so dry)\b/i, 'thirst'],
+  [/\b(in pain|it hurts|my (?:head|back|stomach|tummy|leg|arm|foot|hip|knee|chest) (?:hurts|aches)|aching|so sore)\b/i, 'pain'],
+  [/\b(i'?m (?:cold|freezing|hot|too warm)|too cold|too hot|uncomfortable)\b/i, 'discomfort'],
+  [/\b(i'?m (?:tired|exhausted|sleepy)|want to (?:lie down|rest|go to bed|sleep)|so tired)\b/i, 'tired'],
+];
+
+function detectCareNeed(text: string): { care_need: boolean; care_need_type: CareNeedType } {
+  for (const [re, type] of CARE_NEED_PATTERNS) {
+    if (re.test(text)) return { care_need: true, care_need_type: type };
+  }
+  return { care_need: false, care_need_type: 'none' };
+}
+
 interface PreFilter {
   safety_type: SafetyType;
   distress_type: DistressType;
   distress: boolean;
   hardSafety: boolean; // certain enough to force safety_concern regardless of LLM
+  care_need: boolean;
+  care_need_type: CareNeedType;
 }
 
 function ruledPreFilter(latest: string, recentUser: string[]): PreFilter {
   const text = latest;
+  const care = detectCareNeed(text);
 
   if (SELF_HARM_PATTERNS.some((r) => r.test(text)))
-    return { safety_type: 'self_harm', distress_type: 'distress_other', distress: true, hardSafety: true };
+    return { safety_type: 'self_harm', distress_type: 'distress_other', distress: true, hardSafety: true, ...care };
 
   if (UNKNOWN_COMMAND_PATTERNS.some((r) => r.test(text)))
-    return { safety_type: 'unknown_command', distress_type: 'none', distress: false, hardSafety: true };
+    return { safety_type: 'unknown_command', distress_type: 'none', distress: false, hardSafety: true, ...care };
 
   if (MEDICAL_PATTERNS.some((r) => r.test(text)))
-    return { safety_type: 'medical', distress_type: 'none', distress: false, hardSafety: true };
+    return { safety_type: 'medical', distress_type: 'none', distress: false, hardSafety: true, ...care };
 
   // Repetition loop: the same short distressed phrase recurring in recent turns.
   const norm = (s: string) => s.toLowerCase().replace(/[^a-z ]/g, '').trim();
   const repeats = recentUser.filter((u) => norm(u) === norm(text) && norm(text).length > 0).length;
   if (repeats >= 2 && DISTRESS_PATTERNS.some((r) => r.test(text)))
-    return { safety_type: 'none', distress_type: 'repetition_loop', distress: true, hardSafety: false };
+    return { safety_type: 'none', distress_type: 'repetition_loop', distress: true, hardSafety: false, ...care };
 
   if (DISTRESS_PATTERNS.some((r) => r.test(text)))
-    return { safety_type: 'none', distress_type: 'agitation', distress: true, hardSafety: false };
+    return { safety_type: 'none', distress_type: 'agitation', distress: true, hardSafety: false, ...care };
 
-  return { safety_type: 'none', distress_type: 'none', distress: false, hardSafety: false };
+  return { safety_type: 'none', distress_type: 'none', distress: false, hardSafety: false, ...care };
 }
 
 function safeParse(raw: string): AssessmentResult | null {
@@ -94,6 +116,8 @@ function safeParse(raw: string): AssessmentResult | null {
       distress_type: (obj.distress_type ?? 'none') as DistressType,
       safety_concern: Boolean(obj.safety_concern),
       safety_type: (obj.safety_type ?? 'none') as SafetyType,
+      care_need: Boolean(obj.care_need),
+      care_need_type: (obj.care_need_type ?? 'none') as CareNeedType,
       uncertainty: Boolean(obj.uncertainty),
       confidence: typeof obj.confidence === 'number' ? obj.confidence : 0,
     };
@@ -125,6 +149,7 @@ export const AssessmentService = {
         system: ASSESSMENT_SYSTEM_PROMPT,
         messages: [{ role: 'user', content: buildClassifierInput(recent, latest) }],
         maxTokens: 200,
+        model: assessmentModel(), // fast classifier model to cut per-turn latency
         label: 'assessment.classify',
       });
       llm = safeParse(raw);
@@ -141,6 +166,8 @@ export const AssessmentService = {
         distress_type: pre.distress_type,
         safety_concern: hard,
         safety_type: pre.safety_type,
+        care_need: pre.care_need,
+        care_need_type: pre.care_need_type,
         uncertainty: true,
         confidence: 0.2,
       };
@@ -152,6 +179,8 @@ export const AssessmentService = {
       distress_type: llm.distress ? llm.distress_type : pre.distress ? pre.distress_type : 'none',
       safety_concern: llm.safety_concern || pre.hardSafety,
       safety_type: pre.hardSafety ? pre.safety_type : llm.safety_type,
+      care_need: llm.care_need || pre.care_need,
+      care_need_type: llm.care_need ? llm.care_need_type : pre.care_need ? pre.care_need_type : 'none',
       uncertainty: llm.uncertainty,
       confidence: llm.confidence,
     };

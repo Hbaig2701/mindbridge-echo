@@ -11,7 +11,18 @@ export type InputChannel = 'voice' | 'text';
 
 export type MemoryKind = 'worked' | 'didnt_work' | 'caregiver_note';
 
-export type FlagType = 'safety' | 'uncertainty' | 'medical';
+export type FlagType = 'safety' | 'uncertainty' | 'medical' | 'care_need';
+
+// A physical/comfort need the caregiver should attend to (not a medical emergency).
+export type CareNeedType =
+  | 'none'
+  | 'hunger'
+  | 'thirst'
+  | 'toilet'
+  | 'pain'
+  | 'discomfort'
+  | 'tired'
+  | 'other';
 
 export type DistressType =
   | 'none'
@@ -172,6 +183,8 @@ export interface AssessmentResult {
   distress_type: DistressType;
   safety_concern: boolean;
   safety_type: SafetyType;
+  care_need: boolean;
+  care_need_type: CareNeedType;
   uncertainty: boolean;
   confidence: number;
 }

@@ -79,8 +79,16 @@ export default async function SessionReviewPage({
           <ul className="space-y-2">
             {flags.map((f) => (
               <li key={f.id} className="flex items-start gap-2 text-sm">
-                <Badge tone={f.type === 'safety' ? 'danger' : f.type === 'medical' ? 'warn' : 'neutral'}>
-                  {f.type}
+                <Badge
+                  tone={
+                    f.type === 'safety'
+                      ? 'danger'
+                      : f.type === 'medical' || f.type === 'care_need'
+                        ? 'warn'
+                        : 'neutral'
+                  }
+                >
+                  {f.type === 'care_need' ? 'care need' : f.type}
                 </Badge>
                 <span className="text-[var(--muted)]">
                   {f.reason}

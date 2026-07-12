@@ -82,9 +82,10 @@ export async function runTurn({
   // 3. Safety decision.
   const decision = SafetyService.decide(assessment);
 
-  // Create flag rows.
+  // Create flag rows. Never let a flag insert break the conversation (e.g. if the
+  // care_need migration 0002 hasn't been applied yet, the type CHECK would reject it).
   if (decision.flags.length) {
-    await db.from('flags').insert(
+    const { error: flagErr } = await db.from('flags').insert(
       decision.flags.map((f) => ({
         user_id: userId,
         session_id: sessionId,
@@ -93,6 +94,7 @@ export async function runTurn({
         reason: f.reason,
       })),
     );
+    if (flagErr) console.error('[turn] flag insert failed (conversation continues):', flagErr.message);
   }
 
   // 4/5. Build the reply. The companion ALWAYS responds — a caregiver flag never

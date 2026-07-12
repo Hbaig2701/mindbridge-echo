@@ -13,8 +13,12 @@ function fmtDate(iso: string): string {
 
 function toneFor(type: FlagType): 'danger' | 'warn' | 'neutral' {
   if (type === 'safety') return 'danger';
-  if (type === 'medical') return 'warn';
+  if (type === 'medical' || type === 'care_need') return 'warn';
   return 'neutral';
+}
+
+function flagLabel(type: FlagType): string {
+  return type === 'care_need' ? 'care need' : type;
 }
 
 export default async function FlagsInboxPage() {
@@ -83,7 +87,7 @@ export default async function FlagsInboxPage() {
               <Card key={f.id} className="space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <Badge tone={toneFor(f.type)}>{f.type}</Badge>
+                    <Badge tone={toneFor(f.type)}>{flagLabel(f.type)}</Badge>
                     {profileName && (
                       <span className="text-sm font-medium text-[var(--foreground)]">
                         {profileName}
