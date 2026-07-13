@@ -63,8 +63,25 @@ export async function runTurn({
     .single();
   if (insErr || !userMsg) throw new Error(`Failed to persist message: ${insErr?.message}`);
 
-  // 2. Assess the turn (separate Claude call).
+  // 2. LATENCY: run the assessment (rule + Claude classifier) and the companion reply
+  // CONCURRENTLY instead of one-after-the-other. The reply is shaped by an INSTANT
+  // rule-based read (quickRead) that catches the obvious/hard cases immediately; the
+  // full LLM classification runs in parallel and only forces a reply regeneration in
+  // the rare case it finds a safety/care concern the rules missed.
+  const quick = AssessmentService.quickRead(content, recent);
+  const memoryBlock = await MemoryService.retrieveForPrompt(db, profile.id);
+
+  const replyPromise = ConversationService.reply({
+    profile,
+    memoryBlock,
+    distressed: quick.distressed,
+    recent,
+    latest: content,
+    safetyNote: quick.safetyNote,
+  }).catch(() => holdingResponse()); // never dead-end
+
   const assessment: AssessmentResult = await AssessmentService.assessTurn(content, recent);
+  let reply = await replyPromise;
 
   // Persist the assessment (linked to the user message).
   await db.from('assessments').insert({
@@ -97,14 +114,12 @@ export async function runTurn({
     if (flagErr) console.error('[turn] flag insert failed (conversation continues):', flagErr.message);
   }
 
-  // 4/5. Build the reply. The companion ALWAYS responds — a caregiver flag never
-  // interrupts or ends the conversation. When care is needed, we shape the reply with
-  // safety guidance (refuse medical/command, gently support on self-harm) rather than
-  // going silent.
-  const safetyNote = safetyGuidanceFor(assessment);
-  let reply: string;
-  {
-    const memoryBlock = await MemoryService.retrieveForPrompt(db, profile.id);
+  // 4/5. If the LLM classifier found a safety/care concern the instant rule read did
+  // NOT catch, the parallel reply wasn't shaped for it → regenerate it (rare). This
+  // keeps safety correct while making the common case as fast as a single call.
+  const missedSafety = assessment.safety_concern && !quick.hadSafety;
+  const missedCareNeed = assessment.care_need && !quick.hadCareNeed;
+  if (missedSafety || missedCareNeed) {
     try {
       reply = await ConversationService.reply({
         profile,
@@ -112,10 +127,9 @@ export async function runTurn({
         distressed: assessment.distress,
         recent,
         latest: content,
-        safetyNote,
+        safetyNote: safetyGuidanceFor(assessment),
       });
     } catch {
-      // Reliability: never dead-end. Fall back to a warm, safe line.
       reply = holdingResponse();
     }
   }

@@ -5,8 +5,10 @@
 // Robustness mirrors MicButton: silence detection only arms after sustained speech,
 // ignores the opening moment, and we never send silence to Whisper.
 
-const SILENCE_MS = 1800; // trailing pause that ends a turn (generous, so slow/paused
-// dementia speech isn't cut off mid-thought — Kevin's "latter half doesn't register")
+import { getAudioContext } from './audioContext';
+
+const SILENCE_MS = 1200; // trailing pause that ends a turn. Balance: long enough not to
+// cut off slow/paused dementia speech, short enough that the reply doesn't feel laggy.
 const START_GRACE_MS = 400; // ignore the first moment (turn-taking transient)
 const VOICED_RUN_MS = 160; // sustained voiced audio required to count as speech
 const NO_SPEECH_TIMEOUT_MS = 10000; // give up a silent listen after this (then loop re-listens)
@@ -28,10 +30,10 @@ export class VoiceMic {
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
     });
-    const AC =
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    const audioCtx = new AC();
+    // Use the SHARED audio context (also used by TTS playback) so it's unlocked once
+    // on the Start tap and reused for both mic analysis and Echo's voice.
+    const audioCtx = getAudioContext();
+    if (!audioCtx) throw new Error('Web Audio not available');
     const source = audioCtx.createMediaStreamSource(stream);
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 1024;
@@ -188,6 +190,7 @@ export class VoiceMic {
       /* ignore */
     }
     this.stream.getTracks().forEach((t) => t.stop());
-    this.audioCtx.close().catch(() => {});
+    // Do NOT close the audio context — it's shared with TTS playback and reused
+    // across sessions. Just release the mic stream.
   }
 }

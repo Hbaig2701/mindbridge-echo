@@ -1,24 +1,17 @@
-// Client-side speech playback. Tries the server TTS (/api/speak, OpenAI, calm voice);
-// on any failure falls back to the browser SpeechSynthesis voice. Never throws.
+// Client-side speech playback. Plays the server TTS (/api/speak, OpenAI) through the
+// SHARED Web Audio context (reliable on mobile — see audioContext.ts). Falls back to
+// the browser SpeechSynthesis voice on any failure. Never throws.
 //
-// speak() resolves when playback FINISHES (or is interrupted via stopSpeaking) — this
-// lets the hands-free loop wait for Echo to stop talking before it listens.
-//
-// A generation counter makes stopSpeaking() effective even while the /api/speak fetch
-// is still in flight: a superseded/stopped speak() aborts its fetch and never plays.
+// speak() resolves when playback FINISHES (or is interrupted via stopSpeaking) so the
+// hands-free loop can wait for Echo to stop before it listens. A generation counter
+// makes stopSpeaking() effective even while the /api/speak fetch is still in flight.
 
-let currentAudio: HTMLAudioElement | null = null;
+import { getAudioContext } from './audioContext';
+
+let currentSource: AudioBufferSourceNode | null = null;
 let currentResolve: (() => void) | null = null;
-let currentUrl: string | null = null;
 let currentController: AbortController | null = null;
 let generation = 0;
-
-function cleanupUrl() {
-  if (currentUrl) {
-    URL.revokeObjectURL(currentUrl);
-    currentUrl = null;
-  }
-}
 
 function finish() {
   const r = currentResolve;
@@ -30,11 +23,15 @@ export function stopSpeaking() {
   generation++; // invalidate any in-flight speak()
   currentController?.abort();
   currentController = null;
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio = null;
+  if (currentSource) {
+    try {
+      currentSource.onended = null;
+      currentSource.stop();
+    } catch {
+      /* already stopped */
+    }
+    currentSource = null;
   }
-  cleanupUrl();
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
@@ -62,22 +59,30 @@ export async function speak(text: string): Promise<void> {
         });
         if (myGen !== generation) return; // stopped/superseded during the fetch
         if (!res.ok) throw new Error('tts unavailable');
-        const blob = await res.blob();
-        if (myGen !== generation) return; // stopped during the blob read
-        const url = URL.createObjectURL(blob);
-        currentUrl = url;
-        const audio = new Audio(url);
-        currentAudio = audio;
-        audio.onended = () => {
-          if (currentAudio === audio) currentAudio = null;
-          cleanupUrl();
+        const arr = await res.arrayBuffer();
+        if (myGen !== generation) return;
+
+        const ctx = getAudioContext();
+        if (!ctx) throw new Error('no audio context');
+        if (ctx.state === 'suspended') {
+          try {
+            await ctx.resume();
+          } catch {
+            /* ignore */
+          }
+        }
+        const buffer = await ctx.decodeAudioData(arr);
+        if (myGen !== generation) return; // stopped during decode
+
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(ctx.destination);
+        currentSource = source;
+        source.onended = () => {
+          if (currentSource === source) currentSource = null;
           finish();
         };
-        audio.onerror = () => {
-          cleanupUrl();
-          finish();
-        };
-        await audio.play();
+        source.start(0);
       } catch {
         if (myGen !== generation) return; // aborted — already resolved by stopSpeaking
         browserSpeak(clean);

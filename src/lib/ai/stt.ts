@@ -1,10 +1,10 @@
-// SpeechToText interface + OpenAI Whisper implementation.
-// Providers are swappable behind this interface. Raw audio is transcribed and
+// SpeechToText interface + OpenAI implementation. Raw audio is transcribed and
 // discarded — never persisted (privacy, per spec §1/§10).
 //
-// Whisper hallucinates caption-style phrases ("Thanks for watching!", "Please
-// subscribe") when fed near-silence. We request verbose_json so we can read the
-// per-segment no_speech_prob and drop those, plus a narrow text blocklist.
+// Model defaults to gpt-4o-mini-transcribe — markedly more accurate than whisper-1,
+// especially for accents, short mobile clips, and non-English (Spanish). Language is
+// auto-detected so bilingual patients are transcribed in whatever they actually speak.
+// Override with OPENAI_STT_MODEL (e.g. "whisper-1").
 
 import { toFile } from 'openai/uploads';
 import { openai } from './openai';
@@ -14,8 +14,12 @@ export interface SpeechToText {
   transcribe(audio: Blob | Buffer, filename: string): Promise<string>;
 }
 
-// Narrow list of well-known Whisper silence hallucinations. Kept deliberately
-// small so we never filter real short answers ("yes", "thank you", "okay").
+function sttModel(): string {
+  return process.env.OPENAI_STT_MODEL || 'gpt-4o-mini-transcribe';
+}
+
+// Well-known silence/caption hallucinations to drop (both languages). Kept narrow so
+// real short answers ("yes", "gracias", "okay") are never filtered.
 const HALLUCINATION_PHRASES = [
   'thanks for watching',
   'thank you for watching',
@@ -24,55 +28,35 @@ const HALLUCINATION_PHRASES = [
   'like and subscribe',
   "don't forget to subscribe",
   'see you in the next video',
-  'see you next time',
+  'subtítulos realizados por la comunidad de amara.org',
+  'subtítulos por',
+  'subscríbete al canal',
 ];
 
-interface VerboseSegment {
-  no_speech_prob?: number;
-  avg_logprob?: number;
-}
-
-function isLikelySilenceOrHallucination(text: string, segments: VerboseSegment[]): boolean {
+function isHallucination(text: string): boolean {
   const clean = text.trim().toLowerCase().replace(/[.!?…]+$/g, '');
   if (!clean) return true;
-  if (HALLUCINATION_PHRASES.some((p) => clean === p || clean.startsWith(p))) return true;
-
-  // Acoustic gate: if every segment reads as very likely non-speech, drop it.
-  if (segments.length > 0) {
-    const allSilent = segments.every(
-      (s) => (s.no_speech_prob ?? 0) > 0.6 && (s.avg_logprob ?? 0) < -0.7,
-    );
-    if (allSilent) return true;
-  }
-  return false;
+  return HALLUCINATION_PHRASES.some((p) => clean === p || clean.startsWith(p));
 }
 
-class WhisperSTT implements SpeechToText {
+class OpenAISTT implements SpeechToText {
   async transcribe(audio: Blob | Buffer, filename: string): Promise<string> {
     const file = await toFile(audio, filename);
     const res = await withRetry(
       () =>
         openai().audio.transcriptions.create({
           file,
-          model: 'whisper-1',
-          // No language lock — auto-detect so bilingual patients (e.g. English +
-          // Spanish) are transcribed in whatever language they actually speak.
-          response_format: 'verbose_json',
-          temperature: 0,
+          model: sttModel(),
+          response_format: 'json',
         }),
-      { label: 'whisper.transcribe', timeoutMs: 45_000 },
+      { label: 'openai.transcribe', timeoutMs: 45_000 },
     );
 
-    // verbose_json returns { text, segments: [...] }.
-    const verbose = res as unknown as { text?: string; segments?: VerboseSegment[] };
-    const text = (verbose.text ?? '').trim();
-    const segments = verbose.segments ?? [];
-
-    if (isLikelySilenceOrHallucination(text, segments)) return '';
-    return text;
+    const text = (res.text ?? '').trim();
+    return isHallucination(text) ? '' : text;
   }
 }
 
 export function getSTT(): SpeechToText {
-  return new WhisperSTT();
+  return new OpenAISTT();
 }

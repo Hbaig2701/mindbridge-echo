@@ -4,7 +4,7 @@
 // separate Claude call from the reply — deterministic, cleanly loggable, measurable.
 
 import { complete, assessmentModel } from '@/lib/ai/anthropic';
-import { ASSESSMENT_SYSTEM_PROMPT } from '@/lib/prompts';
+import { ASSESSMENT_SYSTEM_PROMPT, safetyGuidanceFor } from '@/lib/prompts';
 import type { AssessmentResult, CareNeedType, DistressType, SafetyType } from '@/lib/types';
 
 export interface TranscriptTurn {
@@ -137,7 +137,38 @@ function buildClassifierInput(recent: TranscriptTurn[], latest: string): string 
   return `Recent conversation:\n${history || '(none)'}\n\nLatest care-recipient message:\n${latest}`;
 }
 
+export interface QuickRead {
+  distressed: boolean;
+  hadSafety: boolean; // the rule pre-filter caught a clear safety case
+  hadCareNeed: boolean;
+  safetyNote: string | null; // reply guidance derived from the instant rule read
+}
+
 export const AssessmentService = {
+  /**
+   * INSTANT (no LLM) rule-based read, used to shape the companion reply so it can be
+   * generated in PARALLEL with the full LLM classification — the big latency win.
+   * Catches the obvious/hard cases (self-harm, medical, unknown-command, clear
+   * distress, physical needs) immediately; the LLM pass refines the rest.
+   */
+  quickRead(latest: string, recent: TranscriptTurn[]): QuickRead {
+    const recentUser = recent.filter((t) => t.role === 'user').map((t) => t.content);
+    const pre = ruledPreFilter(latest, recentUser);
+    const safetyNote = safetyGuidanceFor({
+      safety_concern: pre.hardSafety,
+      safety_type: pre.safety_type,
+      care_need: pre.care_need,
+      care_need_type: pre.care_need_type,
+      uncertainty: false,
+    });
+    return {
+      distressed: pre.distress,
+      hadSafety: pre.hardSafety,
+      hadCareNeed: pre.care_need,
+      safetyNote,
+    };
+  },
+
   /**
    * Classify the latest care-recipient utterance. `recent` is prior conversation
    * (oldest→newest) excluding the latest message.

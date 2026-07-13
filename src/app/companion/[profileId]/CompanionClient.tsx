@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { VoiceMic } from '@/lib/voiceMic';
 import { speak, stopSpeaking } from '@/lib/ttsClient';
+import { unlockAudio } from '@/lib/audioContext';
 import type { MessageTurnResponse, Profile } from '@/lib/types';
 
 interface Bubble {
@@ -195,6 +196,9 @@ export function CompanionClient({ profile }: { profile: Profile }) {
 
   async function startConversation() {
     setMicDenied(false);
+    // Unlock audio playback SYNCHRONOUSLY inside the tap gesture (critical for mobile,
+    // where Echo's voice would otherwise be blocked because it plays after a fetch).
+    unlockAudio();
     try {
       micRef.current = await VoiceMic.create(); // must be inside the tap gesture
     } catch {
