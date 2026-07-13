@@ -41,19 +41,27 @@ function isHallucination(text: string): boolean {
 
 class OpenAISTT implements SpeechToText {
   async transcribe(audio: Blob | Buffer, filename: string): Promise<string> {
-    const file = await toFile(audio, filename);
-    const res = await withRetry(
-      () =>
-        openai().audio.transcriptions.create({
-          file,
-          model: sttModel(),
-          response_format: 'json',
-        }),
-      { label: 'openai.transcribe', timeoutMs: 45_000 },
-    );
+    const primary = sttModel();
+    // Fall back to whisper-1 if the primary model errors (e.g. not enabled on the
+    // key). Never leave the patient with no transcription because of a model gate.
+    const models = primary === 'whisper-1' ? ['whisper-1'] : [primary, 'whisper-1'];
 
-    const text = (res.text ?? '').trim();
-    return isHallucination(text) ? '' : text;
+    let lastErr: unknown;
+    for (const model of models) {
+      try {
+        const file = await toFile(audio, filename); // fresh handle per attempt
+        const res = await withRetry(
+          () => openai().audio.transcriptions.create({ file, model, response_format: 'json' }),
+          { label: `openai.transcribe.${model}`, timeoutMs: 45_000 },
+        );
+        const text = (res.text ?? '').trim();
+        return isHallucination(text) ? '' : text;
+      } catch (err) {
+        lastErr = err;
+        console.error(`[stt] transcription failed on ${model}; trying next:`, err);
+      }
+    }
+    throw lastErr; // all models failed → route returns 502, client keeps text fallback
   }
 }
 
