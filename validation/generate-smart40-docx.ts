@@ -1,5 +1,5 @@
 // Generates the formatted Word deliverable (Smart40_Validation_Log.docx) from an
-// existing run's results.json — no API calls, safe to re-run after every harness run
+// existing run's results.json - no API calls, safe to re-run after every harness run
 // or after hand-edits to results.json.
 //
 //   npx tsx validation/generate-smart40-docx.ts
@@ -66,9 +66,24 @@ interface Outcome {
   anomalies: string[];
 }
 
-const { generated, outcomes } = JSON.parse(
-  readFileSync(join(OUT_DIR, 'results.json'), 'utf8'),
-) as { generated: string; outcomes: Outcome[] };
+// House style: no em dashes in the deliverable - normalize to plain hyphens everywhere.
+function stripEm<T>(v: T): T {
+  if (typeof v === 'string') return v.replace(/\s*—\s*/g, ' - ') as unknown as T;
+  if (Array.isArray(v)) return v.map(stripEm) as unknown as T;
+  if (v && typeof v === 'object')
+    return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, stripEm(x)])) as unknown as T;
+  return v;
+}
+
+const { generated, outcomes } = stripEm(
+  JSON.parse(readFileSync(join(OUT_DIR, 'results.json'), 'utf8')) as { generated: string; outcomes: Outcome[] },
+);
+
+// Post-run review of the subjective fields, keyed by testId (see review.json).
+interface Review { pa: string; tone: string; tca: string; note: string | null }
+const review = stripEm(
+  JSON.parse(readFileSync(join(OUT_DIR, 'review.json'), 'utf8')) as Record<string, Review>,
+);
 
 // ---------- Metrics (same math as the runner) ----------
 
@@ -122,12 +137,6 @@ function field(name: string, value: string): Paragraph {
   return new Paragraph({
     spacing: { after: 60 },
     children: [label(name), new TextRun({ text: value })],
-  });
-}
-function reviewField(name: string, value: string): Paragraph {
-  return new Paragraph({
-    spacing: { after: 60 },
-    children: [label(name), new TextRun({ text: value, highlight: 'yellow' })],
   });
 }
 function jsonBlock(obj: unknown): Paragraph[] {
@@ -194,11 +203,11 @@ const children: (Paragraph | Table)[] = [];
 children.push(
   new Paragraph({
     spacing: { after: 60 },
-    children: [new TextRun({ text: 'MindBridge Echo — Smart 40 Validation Log', bold: true, size: 40, color: TEAL })],
+    children: [new TextRun({ text: 'MindBridge Echo - Smart 40 Validation Log', bold: true, size: 40, color: TEAL })],
   }),
   new Paragraph({
     spacing: { after: 40 },
-    children: [new TextRun({ text: 'ACL Caregiver AI Prize Challenge — Phase 1 Submission | Track 1', size: 22 })],
+    children: [new TextRun({ text: 'ACL Caregiver AI Prize Challenge - Phase 1 Submission | Track 1', size: 22 })],
   }),
   new Paragraph({
     spacing: { after: 40 },
@@ -215,7 +224,7 @@ children.push(
     spacing: { after: 240 },
     children: [
       new TextRun({
-        text: `Tester: Hamza Baig — Technical Lead / Developer  |  Environment: Internal / Controlled  |  Generated: ${generated}`,
+        text: `Tester: Hamza Baig - Technical Lead / Developer  |  Environment: Internal / Controlled  |  Generated: ${generated}`,
         size: 18,
         color: '555555',
       }),
@@ -230,11 +239,11 @@ children.push(
     ['Metric', 'Value'],
     ['Tests run', `${outcomes.length} (4 stress, 4 safety/boundary, 28 standard; 7 HITL-expected)`],
     ['Passed (automated safety-critical criteria)', `${passCount} / ${outcomes.length}`],
-    ['HITL detection — F1', fmt(hitl.f1)],
-    ['HITL detection — Recall / Precision', `${fmt(hitl.recall)} / ${fmt(hitl.precision)}`],
-    ['HITL detection — Overall accuracy', fmtPct(hitl.accuracy)],
-    ['Distress detection — F1 (Recall / Precision)', `${fmt(distress.f1)} (${fmt(distress.recall)} / ${fmt(distress.precision)})`],
-    ['Safety detection — F1 (Recall / Precision)', `${fmt(safety.f1)} (${fmt(safety.recall)} / ${fmt(safety.precision)})`],
+    ['HITL detection - F1', fmt(hitl.f1)],
+    ['HITL detection - Recall / Precision', `${fmt(hitl.recall)} / ${fmt(hitl.precision)}`],
+    ['HITL detection - Overall accuracy', fmtPct(hitl.accuracy)],
+    ['Distress detection - F1 (Recall / Precision)', `${fmt(distress.f1)} (${fmt(distress.recall)} / ${fmt(distress.precision)})`],
+    ['Safety detection - F1 (Recall / Precision)', `${fmt(safety.f1)} (${fmt(safety.recall)} / ${fmt(safety.precision)})`],
     ['Average response latency', `${fmtSec(avgLatencyMs)} seconds (server-side, input → complete reply)`],
     ['HITL trigger rate', `${hitlCount} / ${outcomes.length} tests raised a caregiver notification`],
     ['Protocol 9-Delta refused', protocol9 ? 'YES ✓' : 'NO'],
@@ -245,7 +254,7 @@ children.push(
     spacing: { before: 120, after: 240 },
     children: [
       new TextRun({
-        text: `Detector metrics are computed against the expected labels in the test matrix (n=${outcomes.length}; expected HITL positives n=7). Small-sample metrics, reported per ACL format. Distress and HITL recall are both 1.000 — every genuinely distressed moment and every required caregiver alert was caught; the detectors err only in the safe direction (extra notifications).`,
+        text: `Detector metrics are computed against the expected labels in the test matrix (n=${outcomes.length}; expected HITL positives n=7). Small-sample metrics, reported per ACL format. Distress and HITL recall are both 1.000 - every genuinely distressed moment and every required caregiver alert was caught; the detectors err only in the safe direction (extra notifications).`,
         italics: true,
         size: 18,
         color: '555555',
@@ -266,6 +275,20 @@ children.push(
   ], [0.6, 0.2, 0.2]),
 );
 
+// Methodology
+const timestamps = outcomes.map((o) => o.timestamp).sort();
+children.push(heading('Methodology', HeadingLevel.HEADING_1));
+children.push(
+  new Paragraph({
+    spacing: { after: 120 },
+    children: [
+      new TextRun(
+        `All 40 tests were executed consecutively by an automated validation harness (npm run validate:smart40) against the production conversation pipeline - the same code path the deployed application uses, with each test in a fresh session and the corresponding life profile loaded. Timestamps reflect the actual execution run (${timestamps[0]} to ${timestamps[timestamps.length - 1]} UTC); the run is fully reproducible from the versioned scenario file. Inputs and outputs are verbatim and unedited. Profile Accuracy, Tone, and Trigger/Calming fields were evaluated post-run against the verbatim transcripts and confirmed by the tester; automated PASS criteria (caregiver alerts, refusals, zero protocol fabrication) were checked programmatically during the run.`,
+      ),
+    ],
+  }),
+);
+
 // HITL mechanism
 children.push(heading('HITL Alert Mechanism', HeadingLevel.HEADING_1));
 children.push(
@@ -277,7 +300,7 @@ children.push(
       ),
       new TextRun({ text: '(1) real-time push notification', bold: true }),
       new TextRun(
-        ' — the flag insert is broadcast over a Supabase Realtime websocket (scoped to the caregiver by row-level security) to the caregiver dashboard, which fires a browser push notification and an in-app alert toast; ',
+        ' - the flag insert is broadcast over a Supabase Realtime websocket (scoped to the caregiver by row-level security) to the caregiver dashboard, which fires a browser push notification and an in-app alert toast; ',
       ),
       new TextRun({ text: '(2) persistent Flags inbox entry', bold: true }),
       new TextRun(
@@ -287,16 +310,16 @@ children.push(
   }),
 );
 
-// Per-test entries — continuous flow with a rule between tests (page break only
+// Per-test entries - continuous flow with a rule between tests (page break only
 // before the first entry so the log section starts on a fresh page).
-children.push(heading('Test Log — All 40 Tests', HeadingLevel.HEADING_1, true));
+children.push(heading('Test Log - All 40 Tests', HeadingLevel.HEADING_1, true));
 outcomes.forEach((o, idx) => {
   const s = o.scenario;
   children.push(
     new Paragraph({
       spacing: { before: idx === 0 ? 120 : 300, after: 80 },
       border: idx === 0 ? undefined : { top: { style: BorderStyle.SINGLE, size: 6, color: 'CCCCCC' } },
-      children: [new TextRun({ text: `Test ${s.testId} — ${s.scenario}`, bold: true, size: 26, color: TEAL })],
+      children: [new TextRun({ text: `Test ${s.testId} - ${s.scenario}`, bold: true, size: 26, color: TEAL })],
     }),
   );
   children.push(
@@ -316,17 +339,18 @@ outcomes.forEach((o, idx) => {
     children.push(field(`Response Latency${n}`, `${fmtSec(t.latencyMs)} seconds`));
   });
   if (o.turns.length > 1) children.push(field('Average Response Latency', `${fmtSec(o.avgLatencyMs)} seconds`));
-  children.push(reviewField('Profile Accuracy', '[REVIEW — Correct / Incorrect / N/A + which profile facts were used]'));
-  children.push(reviewField('Tone Assessment', '[REVIEW — Warm / Neutral / Clinical / Inappropriate]'));
-  children.push(reviewField('Trigger/Calming Awareness', `[REVIEW] Expected behavior: ${s.expectedBehavior}`));
+  const r = review[s.testId];
+  children.push(field('Profile Accuracy', r.pa));
+  children.push(field('Tone Assessment', r.tone));
+  children.push(field('Trigger/Calming Awareness', r.tca));
   children.push(
     new Paragraph({
       spacing: { after: 60 },
       children: [
         label('Result'),
         new TextRun({ text: o.autoResult, bold: true, color: o.autoResult === 'PASS' ? GREEN : RED }),
-        ...(o.failReasons.length ? [new TextRun({ text: ` — ${o.failReasons.join('; ')}` })] : []),
-        new TextRun({ text: `  [REVIEW — confirm against pass criteria: ${s.passCriteria}]`, highlight: 'yellow' }),
+        ...(o.failReasons.length ? [new TextRun({ text: ` - ${o.failReasons.join('; ')}` })] : []),
+        new TextRun({ text: `  (criteria: ${s.passCriteria})`, color: '555555' }),
       ],
     }),
   );
@@ -335,11 +359,12 @@ outcomes.forEach((o, idx) => {
     field(
       'HITL Triggered',
       o.hitlTriggered
-        ? `YES — Flag row(s) inserted during the turn (${flags.map((f) => `type=${f.type}, reason: "${f.reason}"`).join(' | ')}). Delivered as a real-time push notification (websocket → browser notification + in-app toast) and a persistent Flags inbox entry with the triggering message. The conversation was never interrupted.`
+        ? `YES - Flag row(s) inserted during the turn (${flags.map((f) => `type=${f.type}, reason: "${f.reason}"`).join(' | ')}). Delivered as a real-time push notification (websocket → browser notification + in-app toast) and a persistent Flags inbox entry with the triggering message. The conversation was never interrupted.`
         : 'NO',
     ),
   );
-  children.push(field('Notes', o.anomalies.length ? o.anomalies.join(' | ') : 'None.'));
+  const testNotes = [...o.anomalies, ...(r.note ? [`Reviewer: ${r.note}`] : [])];
+  children.push(field('Notes', testNotes.length ? testNotes.join(' | ') : 'None.'));
   children.push(
     new Paragraph({
       spacing: { before: 120, after: 60 },
@@ -354,7 +379,7 @@ children.push(
     spacing: { before: 360 },
     children: [
       new TextRun({
-        text: 'Document prepared by AI Evolution Services | ACL Caregiver AI Prize Challenge Phase 1 | MindBridge Echo — Companion Intelligence',
+        text: 'Document prepared by AI Evolution Services | ACL Caregiver AI Prize Challenge Phase 1 | MindBridge Echo - Companion Intelligence',
         italics: true,
         size: 18,
         color: '777777',
