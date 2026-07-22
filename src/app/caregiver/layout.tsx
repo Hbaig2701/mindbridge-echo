@@ -5,6 +5,7 @@
 import Link from 'next/link';
 import { requireOnboardedUser } from '@/lib/auth';
 import { SignOutButton } from '@/components/SignOutButton';
+import { FlagAlerts } from '@/components/FlagAlerts';
 
 export default async function CaregiverLayout({ children }: { children: React.ReactNode }) {
   await requireOnboardedUser();
@@ -18,6 +19,7 @@ export default async function CaregiverLayout({ children }: { children: React.Re
             <span className="rounded bg-white/20 px-2 py-0.5 text-xs font-medium">Caregiver</span>
           </Link>
           <nav className="flex items-center gap-4 text-sm">
+            <FlagAlerts />
             <Link href="/caregiver" className="hover:underline">
               Profiles
             </Link>
