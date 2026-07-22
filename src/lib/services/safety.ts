@@ -13,12 +13,23 @@ export interface SafetyDecision {
 }
 
 export const SafetyService = {
-  decide(assessment: AssessmentResult): SafetyDecision {
+  decide(
+    assessment: AssessmentResult,
+    opts: { sustainedDistress?: boolean } = {},
+  ): SafetyDecision {
     const flags: TurnFlag[] = [];
 
     if (assessment.safety_concern) {
       const type: FlagType = assessment.safety_type === 'medical' ? 'medical' : 'safety';
       flags.push({ type, reason: reasonForSafety(assessment) });
+    } else if (opts.sustainedDistress) {
+      // Distress persisted across consecutive exchanges (e.g. escalating agitation over a
+      // deceased spouse). One upset moment is a normal dementia moment the companion
+      // handles warmly; SUSTAINED distress means the person likely needs in-person comfort.
+      flags.push({
+        type: 'safety',
+        reason: `Distress has persisted across consecutive exchanges (${assessment.distress_type}) — the person may need in-person comfort from their caregiver.`,
+      });
     } else if (assessment.uncertainty) {
       // Uncertainty is a caregiver REVIEW note. The companion still responds warmly.
       flags.push({
@@ -36,7 +47,11 @@ export const SafetyService = {
       });
     }
 
-    return { flags, alertedCaregiver: assessment.safety_concern || assessment.care_need };
+    return {
+      flags,
+      alertedCaregiver:
+        assessment.safety_concern || assessment.care_need || Boolean(opts.sustainedDistress),
+    };
   },
 };
 
@@ -49,6 +64,6 @@ function reasonForSafety(a: AssessmentResult): string {
     case 'medical':
       return 'A medical/medication question was asked; the companion redirected instead of advising.';
     default:
-      return 'A safety concern was detected in the conversation.';
+      return 'A safety concern was detected (possible mistreatment report, elopement risk, or similar) — review the flagged message now.';
   }
 }

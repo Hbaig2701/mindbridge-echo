@@ -96,8 +96,29 @@ export async function runTurn({
     raw: assessment,
   });
 
-  // 3. Safety decision.
-  const decision = SafetyService.decide(assessment);
+  // 3. Safety decision. Distress on this turn AND the immediately preceding user turn
+  // counts as SUSTAINED distress → background caregiver flag (one upset moment doesn't).
+  let sustainedDistress = false;
+  if (assessment.distress && !assessment.safety_concern) {
+    const { data: prevUserMsg } = await db
+      .from('messages')
+      .select('id')
+      .eq('session_id', sessionId)
+      .eq('role', 'user')
+      .neq('id', userMsg.id)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    const prevId = prevUserMsg?.[0]?.id as string | undefined;
+    if (prevId) {
+      const { data: prevAssess } = await db
+        .from('assessments')
+        .select('distress')
+        .eq('message_id', prevId)
+        .limit(1);
+      sustainedDistress = Boolean(prevAssess?.[0]?.distress);
+    }
+  }
+  const decision = SafetyService.decide(assessment, { sustainedDistress });
 
   // Create flag rows. Never let a flag insert break the conversation (e.g. if the
   // care_need migration 0002 hasn't been applied yet, the type CHECK would reject it).

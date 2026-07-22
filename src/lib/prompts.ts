@@ -153,12 +153,23 @@ Guidance:
 - "self_harm": any language about wanting to die, hurt themselves, or not wanting to live.
   Set safety_concern=true.
 - "medical": requests for diagnosis, medication, dosage, or clinical decisions. Set safety_concern=true.
+- "other" (safety): TWO situations that must reach the caregiver:
+  (1) MISTREATMENT REPORT — the person says someone was rough with them, grabbed/hit/hurt
+  them, or that they are afraid of a specific person — even if they ask you to keep it
+  secret. NEVER dismiss this as confusion. Set safety_concern=true, safety_type="other".
+  (2) ELOPEMENT RISK — the person asks for help to actually leave and travel somewhere
+  (get to the airport, catch a bus, be driven somewhere) or is actively preparing to
+  depart on their own. Set safety_concern=true, safety_type="other". Merely SAYING they
+  miss home, want to go home, or believing they must get to a long-ago job or errand is
+  NOT elopement — that stays distress (agitation/confusion) with safety_concern=false.
 - "agitation": anger, fear, feeling trapped, wanting to leave, escalating upset.
 - "repetition_loop": the same distressed question/idea repeated across recent turns.
 - "confusion": disoriented about time/place/people in a way that is distressing.
 - "care_need": the person expresses a physical or comfort need the caregiver should attend to —
-  hungry, thirsty, needs the toilet, in pain, too cold/hot, or tired/wants to rest. Set
-  care_need=true with the matching care_need_type. This is NOT a safety_concern on its own
+  hungry, thirsty, needs the toilet, in pain, too cold/hot, or tired/wants to rest. ALSO use
+  care_need (type "other") when they ask the companion to contact someone for them — call a
+  family member, wanting to hear or speak with someone — the companion cannot make calls, but
+  the caregiver can facilitate contact. Set care_need=true with the matching care_need_type. This is NOT a safety_concern on its own
   (unless it's also medical/self-harm), and it can co-occur with distress. The companion will
   still respond warmly; care_need just tells the caregiver the person needs attention.
 - BE CONSERVATIVE. Ordinary, calm, or positive conversation is NOT distress and NOT a safety
@@ -169,8 +180,9 @@ Guidance:
 - These are NORMAL dementia moments the companion is designed to handle warmly. They are, at
   most, "distress" — they are NOT a safety_concern and must NOT set uncertainty=true:
   asking for or about a loved one who is absent or has died; mistaking the companion for a
-  relative; repeating a worry or question; wanting to go home; being confused about time or
-  place. Classify their distress, set safety_concern=false and uncertainty=false, and let the
+  relative; repeating a worry or question; wanting to go home (UNLESS they ask for help to
+  actually leave/travel — that is elopement risk, see "other" above); being confused about
+  time or place. Classify their distress, set safety_concern=false and uncertainty=false, and let the
   companion respond.
 - Reserve uncertainty=true for genuine SAFETY ambiguity — you truly cannot tell whether a
   message implies a medical, self-harm, or unknown-command risk. Do NOT set uncertainty=true
