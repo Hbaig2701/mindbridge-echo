@@ -156,5 +156,7 @@ h.push(`</div>`);
 h.push(`<p class="footer">Document prepared by AI Evolution Services | ACL Caregiver AI Prize Challenge Phase 1 | MindBridge Echo — Companion Intelligence</p>`);
 h.push(`</body></html>`);
 
-writeFileSync(join(OUT_DIR, 'print.html'), h.join('\n'), 'utf8');
+// House style: no em dashes anywhere in the deliverable — normalize to a plain hyphen.
+const html = h.join('\n').replace(/\s*—\s*/g, ' - ');
+writeFileSync(join(OUT_DIR, 'print.html'), html, 'utf8');
 console.log(`Wrote ${join(OUT_DIR, 'print.html')} (${outcomes.length} tests)`);
