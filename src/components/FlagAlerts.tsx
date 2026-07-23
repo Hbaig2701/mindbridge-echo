@@ -50,11 +50,19 @@ export function FlagAlerts() {
           }, 15000);
           timersRef.current.push(timer);
 
-          if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-            new Notification(`MindBridge Echo — ${label}`, {
-              body: flag.reason,
-              tag: flag.id,
-            });
+          // OS-level notification where the page-context Notification API is supported
+          // (desktop browsers). Mobile browsers either lack the API (iOS Safari) or
+          // require a service worker (Android Chrome, where this constructor THROWS) —
+          // never let that break the in-app toast or the realtime subscription.
+          try {
+            if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+              new Notification(`MindBridge Echo — ${label}`, {
+                body: flag.reason,
+                tag: flag.id,
+              });
+            }
+          } catch {
+            // In-app toast + Flags inbox still deliver the alert.
           }
 
           // Keep the flags inbox fresh if the caregiver is looking at it.
