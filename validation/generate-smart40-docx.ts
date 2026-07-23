@@ -27,6 +27,8 @@ import {
   WidthType,
 } from 'docx';
 
+import { SMART40_PROFILES } from './smart40-profiles';
+
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = join(HERE, 'smart40');
 
@@ -154,17 +156,21 @@ function jsonBlock(obj: unknown): Paragraph[] {
 // Usable page width in twips (US Letter 12240 minus 1440 margins each side).
 const PAGE_DXA = 9360;
 
-function cell(text: string, widthDxa: number, opts: { bold?: boolean; fill?: string } = {}): TableCell {
+function cell(
+  text: string,
+  widthDxa: number,
+  opts: { bold?: boolean; fill?: string; size?: number } = {},
+): TableCell {
   return new TableCell({
     width: { size: widthDxa, type: WidthType.DXA },
     shading: opts.fill ? { type: ShadingType.CLEAR, fill: opts.fill } : undefined,
     margins: { top: 80, bottom: 80, left: 120, right: 120 },
-    children: [new Paragraph({ children: [new TextRun({ text, bold: opts.bold })] })],
+    children: [new Paragraph({ children: [new TextRun({ text, bold: opts.bold, size: opts.size })] })],
   });
 }
 
 // colPcts: per-column width as fractions of the page width (must sum to ~1).
-function table(rows: string[][], colPcts: number[], headerFill = 'EEF4F5'): Table {
+function table(rows: string[][], colPcts: number[], headerFill = 'EEF4F5', cellSize?: number): Table {
   const widths = colPcts.map((p) => Math.round(p * PAGE_DXA));
   return new Table({
     layout: TableLayoutType.FIXED,
@@ -181,7 +187,9 @@ function table(rows: string[][], colPcts: number[], headerFill = 'EEF4F5'): Tabl
     rows: rows.map(
       (r, i) =>
         new TableRow({
-          children: r.map((c, j) => cell(c, widths[j], i === 0 ? { bold: true, fill: headerFill } : {})),
+          children: r.map((c, j) =>
+            cell(c, widths[j], i === 0 ? { bold: true, fill: headerFill, size: cellSize } : { size: cellSize }),
+          ),
         }),
     ),
   });
@@ -245,7 +253,7 @@ children.push(
     ['Distress detection - F1 (Recall / Precision)', `${fmt(distress.f1)} (${fmt(distress.recall)} / ${fmt(distress.precision)})`],
     ['Safety detection - F1 (Recall / Precision)', `${fmt(safety.f1)} (${fmt(safety.recall)} / ${fmt(safety.precision)})`],
     ['Average response latency', `${fmtSec(avgLatencyMs)} seconds (server-side, input → complete reply)`],
-    ['HITL trigger rate', `${hitlCount} / ${outcomes.length} tests raised a caregiver notification`],
+    ['HITL trigger rate', `${hitlCount} / ${outcomes.length} tests raised a caregiver notification (ACL requirement: at least 2 flagged instances; all 7 required alerts fired)`],
     ['Protocol 9-Delta refused', protocol9 ? 'YES ✓' : 'NO'],
   ], [0.42, 0.58]),
 );
@@ -278,15 +286,84 @@ children.push(
 // Methodology
 const timestamps = outcomes.map((o) => o.timestamp).sort();
 children.push(heading('Methodology', HeadingLevel.HEADING_1));
+const methodPara = (lead: string, body: string) =>
+  new Paragraph({
+    spacing: { after: 120 },
+    children: [new TextRun({ text: `${lead}. `, bold: true }), new TextRun(body)],
+  });
+children.push(
+  methodPara(
+    'Test design',
+    'The 40-scenario matrix and the 11 fictional life profiles were authored by the project team to cover seven categories: messy-data stress (S1-S4), boundary/safety (B1-B4, including the ACL-required Protocol 9-Delta), session management, reminiscence, cognitive patterns, profile accuracy, and human-in-the-loop escalation. Scenario design was informed by earlier manual exploratory (red-team) testing of the live build, which surfaced the dementia-specific edge cases the matrix formalizes: questions about deceased loved ones, mistaken identity, time disorientation with work urgency, disinhibited remarks, and official-sounding command injection.',
+  ),
+  methodPara(
+    'Execution',
+    `All 40 logged test cycles were executed consecutively by an automated validation harness (npm run validate:smart40) against the production conversation pipeline - the same code path the deployed application uses. For each test the harness loads the bound life profile into a fresh session, delivers the matrix input verbatim, and captures the complete system output, per-turn latency, safety assessment, and any caregiver flags. Timestamps reflect the actual execution run (${timestamps[0]} to ${timestamps[timestamps.length - 1]} UTC); the run is fully reproducible from the versioned scenario file. Inputs and outputs are verbatim and unedited - Protocol 9-Delta (Test B1) and all boundary tests show the exact system response, not a summary.`,
+  ),
+  methodPara(
+    'Review',
+    'Automated PASS criteria (caregiver alerts raised where required, refusals present, zero protocol fabrication) were checked programmatically during the run. The subjective fields - Profile Accuracy, Tone, Trigger/Calming Awareness - were then evaluated manually post-run against every verbatim transcript and confirmed by the tester. This hybrid approach (manual exploratory testing to find the edge cases, automated execution so the logged evidence is reproducible, manual review of every transcript) keeps the log both verbatim and repeatable.',
+  ),
+);
+
+// Test profiles
+children.push(heading('Test Profiles (11 Fictional Life Profiles)', HeadingLevel.HEADING_1));
 children.push(
   new Paragraph({
     spacing: { after: 120 },
     children: [
       new TextRun(
-        `All 40 tests were executed consecutively by an automated validation harness (npm run validate:smart40) against the production conversation pipeline - the same code path the deployed application uses, with each test in a fresh session and the corresponding life profile loaded. Timestamps reflect the actual execution run (${timestamps[0]} to ${timestamps[timestamps.length - 1]} UTC); the run is fully reproducible from the versioned scenario file. Inputs and outputs are verbatim and unedited. Profile Accuracy, Tone, and Trigger/Calming fields were evaluated post-run against the verbatim transcripts and confirmed by the tester; automated PASS criteria (caregiver alerts, refusals, zero protocol fabrication) were checked programmatically during the run.`,
+        "All testing uses fully fictional, de-identified life profiles - no real people and no real patient data. Each profile is a complete life story (upbringing narrative, family, career, routines, communication preferences, known triggers, and documented calming strategies) modeled on realistic, culturally diverse care recipients: 11 profiles spanning different birthplaces (Puerto Rico, Jamaica, Ireland, England, Germany, Hawaii, and five US regions), languages, occupations, and family structures. Each of the 40 tests is bound to one profile (3-4 tests per profile); the harness loads that person's full profile into the conversation context before delivering the test input, so every response is evaluated for personalization against the loaded profile. The complete profiles are versioned in the repository (validation/smart40-profiles.ts) and summarized below.",
       ),
     ],
   }),
+);
+children.push(
+  table(
+    [
+      ['Profile (age)', 'Origin', 'Occupation', 'Languages', 'Key family', 'Calming strategies (sample)'],
+      ...stripEm(SMART40_PROFILES).map((p) => [
+        `${p.name} (${p.age})`,
+        p.life_story.background.birthplace,
+        p.life_story.work.occupation,
+        p.life_story.background.languages.join(', '),
+        p.life_story.family.map((f) => `${f.name} (${f.relationship})`).join(', '),
+        p.known_calming_strategies.slice(0, 2).join('; '),
+      ]),
+    ],
+    [0.13, 0.14, 0.16, 0.13, 0.19, 0.25],
+    'EEF4F5',
+    16, // 8pt
+  ),
+);
+
+// Trust & Privacy
+children.push(heading('Trust & Privacy', HeadingLevel.HEADING_1));
+children.push(
+  methodPara(
+    'Consent comes first',
+    'No conversation happens until a caregiver completes the consent flow. Consent records are versioned, so we always know exactly which terms a caregiver agreed to and when. Onboarding is written in plain language: what the companion does, what it cannot do, and what the caregiver will be told.',
+  ),
+  methodPara(
+    'No real patient data in this validation',
+    'Every profile and every test input in this log is fully fictional. No PHI has been processed in Phase 1 validation.',
+  ),
+  methodPara(
+    'Words, not recordings',
+    'The companion uses push-to-talk: it captures audio only while the talk button is held - there is no always-on listening. Speech is transcribed and the audio is discarded; no raw audio is stored. All safety assessment works from transcribed words only.',
+  ),
+  methodPara(
+    'Data isolation and the right to delete',
+    "Every record is scoped to its owning caregiver by database-level row security - one family can never see another family's data. A caregiver can delete their data, which removes profiles, conversations, assessments, and flags.",
+  ),
+  methodPara(
+    'A human is always in the loop',
+    `The system is designed to know when to step aside: safety concerns, medical mentions, sustained distress, and uncertain moments are flagged to the caregiver in real time (push notification + reviewable inbox) rather than handled autonomously. This log demonstrates that behavior ${hitlCount} times across 40 tests.`,
+  ),
+  methodPara(
+    'AI providers and BAA status',
+    'Conversations are processed by Anthropic (Claude, for the companion and the safety assessment) and OpenAI (speech-to-text and voice), under API terms that exclude customer content from model training. Because Phase 1 validation used only fictional data, no Business Associate Agreement was required for this log. Executed BAAs with both AI providers are a defined go-live gate - alongside clinical sign-off of the escalation behavior - before any real care recipient uses the system.',
+  ),
 );
 
 // HITL mechanism

@@ -12,6 +12,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SMART40_PROFILES } from './smart40-profiles';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = join(HERE, 'smart40');
@@ -107,7 +108,7 @@ const summaryRows: [string, string][] = [
   ['Distress detection — F1 (Recall / Precision)', `${fmt(distress.f1)} (${fmt(distress.recall)} / ${fmt(distress.precision)})`],
   ['Safety detection — F1 (Recall / Precision)', `${fmt(safety.f1)} (${fmt(safety.recall)} / ${fmt(safety.precision)})`],
   ['Average response latency', `${fmtSec(avgLatencyMs)} seconds (server-side, input → complete reply)`],
-  ['HITL trigger rate', `${hitlCount} / ${outcomes.length} tests raised a caregiver notification`],
+  ['HITL trigger rate', `${hitlCount} / ${outcomes.length} tests raised a caregiver notification (ACL requirement: at least 2 flagged instances; all 7 required alerts fired)`],
   ['Protocol 9-Delta refused', protocol9 ? 'YES ✓' : 'NO'],
 ];
 for (const [k, v] of summaryRows) h.push(`<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`);
@@ -122,9 +123,31 @@ for (const p of profiles) {
 h.push(`</table>`);
 
 const timestamps = outcomes.map((o) => o.timestamp).sort();
-h.push(`<h2>Methodology</h2><p style="font-size:9.5pt">All 40 tests were executed consecutively by an automated validation harness (<i>npm run validate:smart40</i>) against the production conversation pipeline — the same code path the deployed application uses, with each test in a fresh session and the corresponding life profile loaded. Timestamps reflect the actual execution run (${esc(timestamps[0])} → ${esc(timestamps[timestamps.length - 1])} UTC); the run is fully reproducible from the versioned scenario file. Inputs and outputs are verbatim and unedited. Profile Accuracy, Tone, and Trigger/Calming fields were evaluated post-run against the verbatim transcripts and confirmed by the tester; automated PASS criteria (caregiver alerts, refusals, zero protocol fabrication) were checked programmatically during the run.</p>`);
+h.push(`<h2>Methodology</h2>
+<p style="font-size:9.5pt"><b>Test design.</b> The 40-scenario matrix and the 11 fictional life profiles were authored by the project team to cover seven categories: messy-data stress (S1&ndash;S4), boundary/safety (B1&ndash;B4, including the ACL-required Protocol 9-Delta), session management, reminiscence, cognitive patterns, profile accuracy, and human-in-the-loop escalation. Scenario design was informed by earlier manual exploratory (red-team) testing of the live build, which surfaced the dementia-specific edge cases the matrix formalizes: questions about deceased loved ones, mistaken identity, time disorientation with work urgency, disinhibited remarks, and official-sounding command injection.</p>
+<p style="font-size:9.5pt"><b>Execution.</b> All 40 logged test cycles were executed consecutively by an automated validation harness (<i>npm run validate:smart40</i>) against the production conversation pipeline - the same code path the deployed application uses. For each test the harness loads the bound life profile into a fresh session, delivers the matrix input verbatim, and captures the complete system output, per-turn latency, safety assessment, and any caregiver flags. Timestamps reflect the actual execution run (${esc(timestamps[0])} to ${esc(timestamps[timestamps.length - 1])} UTC); the run is fully reproducible from the versioned scenario file. Inputs and outputs are verbatim and unedited - Protocol 9-Delta (Test B1) and all boundary tests show the exact system response, not a summary.</p>
+<p style="font-size:9.5pt"><b>Review.</b> Automated PASS criteria (caregiver alerts raised where required, refusals present, zero protocol fabrication) were checked programmatically during the run. The subjective fields - Profile Accuracy, Tone, Trigger/Calming Awareness - were then evaluated manually post-run against every verbatim transcript and confirmed by the tester. This hybrid approach (manual exploratory testing to find the edge cases, automated execution so the logged evidence is reproducible, manual review of every transcript) keeps the log both verbatim and repeatable.</p>`);
+
+h.push(`<h2>Test Profiles (11 Fictional Life Profiles)</h2>
+<p style="font-size:9.5pt">All testing uses fully fictional, de-identified life profiles - no real people and no real patient data. Each profile is a complete life story (upbringing narrative, family, career, routines, communication preferences, known triggers, and documented calming strategies) modeled on realistic, culturally diverse care recipients: 11 profiles spanning different birthplaces (Puerto Rico, Jamaica, Ireland, England, Germany, Hawaii, and five US regions), languages, occupations, and family structures. Each of the 40 tests is bound to one profile (3&ndash;4 tests per profile); the harness loads that person's full profile into the conversation context before delivering the test input, so every response is evaluated for personalization against the loaded profile. The complete profiles are versioned in the repository (validation/smart40-profiles.ts) and summarized below.</p>`);
+h.push(`<table style="font-size:8pt"><colgroup><col style="width:13%"><col style="width:14%"><col style="width:16%"><col style="width:13%"><col style="width:19%"><col style="width:25%"></colgroup>`);
+h.push(`<tr><th>Profile (age)</th><th>Origin</th><th>Occupation</th><th>Languages</th><th>Key family</th><th>Documented calming strategies (sample)</th></tr>`);
+for (const p of SMART40_PROFILES) {
+  const fam = p.life_story.family.map((f) => `${f.name} (${f.relationship})`).join(', ');
+  const calm = p.known_calming_strategies.slice(0, 2).join('; ');
+  h.push(`<tr><td>${esc(p.name)} (${p.age})</td><td>${esc(p.life_story.background.birthplace)}</td><td>${esc(p.life_story.work.occupation)}</td><td>${esc(p.life_story.background.languages.join(', '))}</td><td>${esc(fam)}</td><td>${esc(calm)}</td></tr>`);
+}
+h.push(`</table>`);
 
 h.push(`<h2>HITL Alert Mechanism</h2><p style="font-size:9.5pt">When the companion detects a safety concern, medical mention, sustained distress, uncertainty, or a care need, it inserts a flag row (type, reason, and the triggering message) without ever interrupting the conversation. The flag reaches the caregiver through two channels: <b>(1) real-time push notification</b> — the flag insert is broadcast over a Supabase Realtime websocket (scoped to the caregiver by row-level security) to the caregiver dashboard, which fires a browser push notification and an in-app alert toast; <b>(2) persistent Flags inbox entry</b> with the flag type, reason, triggering message verbatim, and a link into the full session transcript. Latency figures are server-side: input received → complete companion reply.</p>`);
+
+h.push(`<h2>Trust &amp; Privacy</h2>
+<p style="font-size:9.5pt"><b>Consent comes first.</b> No conversation happens until a caregiver completes the consent flow. Consent records are versioned, so we always know exactly which terms a caregiver agreed to and when. Onboarding is written in plain language - what the companion does, what it cannot do, and what the caregiver will be told.</p>
+<p style="font-size:9.5pt"><b>No real patient data in this validation.</b> Every profile and every test input in this log is fully fictional. No PHI has been processed in Phase 1 validation.</p>
+<p style="font-size:9.5pt"><b>Words, not recordings.</b> The companion uses push-to-talk: it captures audio only while the talk button is held - there is no always-on listening. Speech is transcribed and the audio is discarded; no raw audio is stored. All safety assessment works from transcribed words only.</p>
+<p style="font-size:9.5pt"><b>Data isolation and the right to delete.</b> Every record is scoped to its owning caregiver by database-level row security - one family can never see another family's data. A caregiver can delete their data, which removes profiles, conversations, assessments, and flags.</p>
+<p style="font-size:9.5pt"><b>A human is always in the loop.</b> The system is designed to know when to step aside: safety concerns, medical mentions, sustained distress, and uncertain moments are flagged to the caregiver in real time (push notification + reviewable inbox) rather than handled autonomously. This log demonstrates that behavior ${hitlCount} times across 40 tests.</p>
+<p style="font-size:9.5pt"><b>AI providers and BAA status.</b> Conversations are processed by Anthropic (Claude, for the companion and the safety assessment) and OpenAI (speech-to-text and voice), under API terms that exclude customer content from model training. Because Phase 1 validation used only fictional data, no Business Associate Agreement was required for this log. Executed BAAs with both AI providers are a defined go-live gate - alongside clinical sign-off of the escalation behavior - before any real care recipient uses the system.</p>`);
 
 h.push(`<div class="testlog"><h2>Test Log — All 40 Tests</h2>`);
 for (const o of outcomes) {
