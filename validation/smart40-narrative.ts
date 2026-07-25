@@ -88,12 +88,20 @@ export function narrativeSections(hitlCount: number): Section[] {
           text: 'Every profile and every test input in this log is fully fictional. No PHI has been processed in Phase 1 validation.',
         },
         {
-          lead: 'Hands-free by design, words not recordings',
-          text: 'Echo listens and responds conversationally so the person can simply talk - there is no button to press or hold. This is a deliberate accessibility choice: people living with dementia often cannot reliably operate a push-to-talk control, and a simpler interface is safer for them. Voice activity is detected on-device, so only audio that actually contains speech is sent for transcription; when no speech is detected, nothing is sent. Speech is transcribed to text and the audio is discarded immediately - no raw audio is ever stored. All safety assessment works from the transcribed words only.',
+          lead: 'Session-scoped activation, not ambient listening',
+          text: 'Echo does not listen in the background. A conversation is deliberately started (the caregiver hands over the device and taps once to begin) and deliberately ended (a clear, always-present End control stops listening). Between those two points Echo listens hands-free so the person can simply talk - a deliberate accessibility choice, because people living with dementia often cannot reliably operate a push-to-talk button, and a simpler interface is safer for them. The screen shows the live state (listening / thinking / speaking) and Echo speaks every reply aloud, so it is always apparent when a session is active. This is session-scoped continuous listening, not an always-on ambient microphone.',
+        },
+        {
+          lead: 'Words, not recordings',
+          text: 'Voice activity is detected on-device, so only audio that actually contains speech is sent for transcription; when no speech is detected, nothing is sent. Speech is transcribed to text and the audio is discarded immediately - no raw audio is ever stored. Every downstream step, including all safety and distress assessment, operates on the transcribed words only (see "How distress detection works" below).',
         },
         {
           lead: 'Data isolation and the right to delete',
           text: "Every record is scoped to its owning caregiver by database-level row security - one family can never see another family's data. A caregiver can delete their data, which removes profiles, conversations, assessments, and flags.",
+        },
+        {
+          lead: 'Bystander privacy in shared settings (Phase 2 design item)',
+          text: 'Because a session listens continuously while active, in a shared setting such as an assisted-living facility it can incidentally capture the speech of other residents, staff, or visitors who have not consented, and the care recipient may not be able to give meaningful consent themselves (consent is granted by the caregiver). We name this openly rather than leave it implied. Current mitigations already in place: session-scoped activation with a visible live indicator and an explicit End control, on-device filtering so only speech is transcribed, immediate discard of audio (transcript only), and per-caregiver data isolation. Planned Phase 2 mitigations for facility pilots: a visible/audible in-session recording indicator, a documented posted-notice and consent process for shared spaces, and evaluation of on-device speaker-focus so non-primary voices are not transcribed. This is a live design question we are addressing deliberately with pilot sites, not after the fact.',
         },
         {
           lead: 'A human is always in the loop',
@@ -152,8 +160,18 @@ export function narrativeSections(hitlCount: number): Section[] {
       ],
     },
     {
-      title: 'Distress Detection and Alert Fatigue',
+      title: 'Distress Detection: Linguistic (Transcript-Based)',
+      intro:
+        'To be precise about what the system does and does not do: distress and safety detection is LINGUISTIC. It reads the transcribed words, not the sound of the voice.',
       paras: [
+        {
+          lead: 'How it works',
+          text: 'Speech is transcribed to text, and a classifier reads that text (the latest message plus recent turns) to label distress, safety concern, care need, and uncertainty. The categories it emits are semantic - agitation, confusion, repetition loop - inferred from what is said, not from acoustic features. The system does not analyze pitch, energy, jitter, or speech rate; there is no prosodic or "vocal stress" analysis anywhere in this validation. The honest name for this capability is linguistic distress detection.',
+        },
+        {
+          lead: 'Prosodic analysis is explicitly Phase 2',
+          text: 'Acoustic / voice-tone agitation detection (analyzing how something is said, not just what) is a designed future capability, listed as out of scope for Phase 1 in the product specification. It would require capturing and processing audio features, with the corresponding privacy design; it is not claimed as validated here.',
+        },
         {
           lead: 'Conservative by design',
           text: 'Distress detection is intentionally tuned for recall over precision: in this run it caught every genuine distress event (recall 1.000) while also raising some alerts a caregiver might judge unnecessary (precision 0.429 on the distress label; overall HITL precision 0.700). For a dementia-safety tool the cost of a missed emergency is far higher than the cost of an extra check-in, so we chose to err toward over-alerting in Phase 1.',
