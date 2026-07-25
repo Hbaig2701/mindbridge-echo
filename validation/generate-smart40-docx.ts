@@ -198,6 +198,8 @@ function heading(text: string, level: (typeof HeadingLevel)[keyof typeof Heading
   return new Paragraph({
     heading: level,
     pageBreakBefore: pageBreak,
+    keepNext: true, // keep a heading with the content that follows it (no orphaned headings)
+    keepLines: true,
     spacing: { before: 240, after: 120 },
     children: [new TextRun({ text, color: TEAL, bold: true })],
   });
@@ -345,6 +347,7 @@ outcomes.forEach((o, idx) => {
   children.push(
     new Paragraph({
       spacing: { before: idx === 0 ? 120 : 300, after: 80 },
+      keepNext: true, // keep the test title with the line that follows
       border: idx === 0 ? undefined : { top: { style: BorderStyle.SINGLE, size: 6, color: 'CCCCCC' } },
       children: [new TextRun({ text: `Test ${s.testId} - ${s.scenario}`, bold: true, size: 26, color: TEAL })],
     }),

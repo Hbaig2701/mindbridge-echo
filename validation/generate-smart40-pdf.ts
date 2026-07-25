@@ -77,14 +77,18 @@ h.push(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>MindBridge Echo 
 * { box-sizing: border-box; }
 body { font-family: 'Helvetica Neue', Calibri, Arial, sans-serif; font-size: 10pt; color: #1a1a1a; line-height: 1.42; margin: 0; }
 h1 { font-size: 19pt; color: #0f4c5c; margin: 0 0 2pt; }
-h2 { font-size: 13pt; color: #0f4c5c; margin: 14pt 0 6pt; }
+h2 { font-size: 13pt; color: #0f4c5c; margin: 14pt 0 6pt; break-after: avoid; page-break-after: avoid; }
+/* Keep a heading with the paragraph/table that follows it (no orphaned headings). */
+h2 + p, h2 + table, h3 + p { break-before: avoid; page-break-before: avoid; }
 .sub { color: #555; font-size: 8.5pt; margin: 1pt 0; }
 table { border-collapse: collapse; width: 100%; margin: 6pt 0; table-layout: fixed; }
 td, th { border: 0.75pt solid #bbb; padding: 3pt 7pt; font-size: 9pt; text-align: left; vertical-align: top; word-wrap: break-word; }
 th { background: #eef4f5; }
 .note { font-style: italic; color: #555; font-size: 8.5pt; margin: 4pt 0 10pt; }
 .test { border-top: 1.5pt solid #0f4c5c22; padding-top: 6pt; margin-top: 10pt; }
-.test h3 { font-size: 11pt; color: #0f4c5c; margin: 0 0 1pt; page-break-after: avoid; }
+.test h3 { font-size: 11pt; color: #0f4c5c; margin: 0 0 1pt; break-after: avoid; page-break-after: avoid; }
+.test { break-inside: auto; }
+.cat { break-before: avoid; page-break-before: avoid; }
 pre { page-break-inside: avoid; }
 .cat { color: #666; font-size: 8.5pt; font-style: italic; margin: 0 0 4pt; }
 .f { margin: 1.5pt 0; }
