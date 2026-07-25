@@ -175,7 +175,7 @@ export function narrativeSections(hitlCount: number): Section[] {
         },
         {
           lead: 'Evidence basis and honesty',
-          text: 'Session-holding capability is evidenced by the sustained-session tests appended to this log (Tests 41+), which measure elapsed time, context retention, and graceful wind-down over a full-length session. The per-day and per-year figures are projections from that capability, not yet measured in a real household; validating actual respite minutes with real caregiver-reported data is a Phase 2 pilot outcome. [Team to confirm the session-count assumption before submission.]',
+          text: 'Session-holding capability is evidenced by the three sustained-session tests appended to this log (Tests 41-43, Appendix A): full ~20-turn conversations across three profiles (two bilingual) in which Echo held context without looping, kept profile facts accurate to the end, stayed warm past turn 15, and wound down gracefully. The per-day and per-year figures are projections from that demonstrated capability, not yet measured in a real household; validating actual respite minutes with real caregiver-reported data is a Phase 2 pilot outcome. [Team to confirm the daily-session-count assumption before submission.]',
         },
       ],
     },

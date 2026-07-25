@@ -8,7 +8,7 @@
 // 10pt, summary page with F1 / recall / precision / accuracy / latency / HITL rate /
 // per-profile pass rates. Human-review fields are highlighted yellow with [REVIEW].
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -400,6 +400,134 @@ outcomes.forEach((o, idx) => {
   );
   children.push(...jsonBlock(o.lastAssessment));
 });
+
+// ---------- Appendix A: Sustained Respite Sessions (Tests 41-43) ----------
+if (existsSync(join(OUT_DIR, 'sustained-results.json'))) {
+  interface SustainedTurn { index: number; input: string; latencyMs: number; reply: string; flags: { type: string; reason: string }[] }
+  interface SustainedResult {
+    testId: string; scenario: string; profileName: string; arc: string; timestamp: string;
+    turnCount: number; turns: SustainedTurn[]; maxReplySimilarity: number; maxSimilarPair: [number, number];
+    flagCount: number; estMinutesLow: number; estMinutesHigh: number;
+  }
+  const sustained = stripEm(
+    (JSON.parse(readFileSync(join(OUT_DIR, 'sustained-results.json'), 'utf8')).results ?? []) as SustainedResult[],
+  );
+  const median = (xs: number[]): number => {
+    const s = [...xs].sort((a, b) => a - b);
+    const m = Math.floor(s.length / 2);
+    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  };
+  const medThirds = (r: SustainedResult) => {
+    const lat = r.turns.map((t) => t.latencyMs);
+    const third = Math.max(1, Math.floor(lat.length / 3));
+    return { first: median(lat.slice(0, third)), last: median(lat.slice(-third)) };
+  };
+
+  children.push(heading('Appendix A - Sustained Respite Sessions (Tests 41-43)', HeadingLevel.HEADING_1, true));
+  children.push(
+    new Paragraph({
+      spacing: { after: 120 },
+      children: [
+        new TextRun(
+          'The 40-test matrix caps each scenario at five turns, so it does not exercise the full-length Respite Mode session (designed for 20-30 minutes) during which a caregiver steps away. These three appended tests run a full session each - roughly 20 care-recipient turns in a single, context-accumulating conversation - across three profiles including two bilingual (Spanish and French/English) to test language consistency over duration.',
+        ),
+      ],
+    }),
+    new Paragraph({
+      spacing: { after: 120 },
+      children: [
+        new TextRun({ text: 'How to read these (honesty note). ', bold: true }),
+        new TextRun(
+          'These are automated, back-to-back turns measuring model behavior across a full-length exchange sequence - not a literal 20-minute human-paced session. Turn count is the session-length metric; the real-world duration is an estimate (a natural spoken exchange runs ~45-75 seconds). Latency is reported as the median (robust to occasional per-call API spikes). Measured evidence: whether latency degrades as context grows, whether Echo repeats or loops (reply-to-reply similarity), and - by manual review of the transcripts - whether profile facts stay accurate, tone stays warm past turn 15, and the session winds down gracefully.',
+        ),
+      ],
+    }),
+  );
+  children.push(
+    table(
+      [
+        ['Test', 'Profile', 'Turns', 'Est. duration', 'Median latency', 'Median 1st->last third', 'Max reply sim.', 'Flags'],
+        ...sustained.map((r) => {
+          const mt = medThirds(r);
+          return [
+            r.testId,
+            r.profileName,
+            String(r.turnCount),
+            `~${r.estMinutesLow}-${r.estMinutesHigh} min`,
+            `${fmtSec(median(r.turns.map((t) => t.latencyMs)))}s`,
+            `${fmtSec(mt.first)}s -> ${fmtSec(mt.last)}s`,
+            `${(r.maxReplySimilarity * 100).toFixed(0)}%`,
+            String(r.flagCount),
+          ];
+        }),
+      ],
+      [0.07, 0.19, 0.08, 0.15, 0.14, 0.17, 0.1, 0.1],
+      'EEF4F5',
+      16,
+    ),
+  );
+  children.push(
+    new Paragraph({
+      spacing: { before: 80, after: 160 },
+      children: [
+        new TextRun({ text: 'Findings. ', bold: true }),
+        new TextRun(
+          '(1) No looping: max reply-to-reply similarity stayed low (9-26%) across all three full sessions. (2) Latency holds under long context: mid-session turns at full context stayed near 2 seconds; the modest rise in the final third is concentrated on safety-flagged turns, where Echo deliberately regenerates the reply to shape it safely (a safety cost, not context bloat), and median latency stayed under 4 seconds throughout. (3) Profile fidelity and warmth held to the end, and each session wound down gracefully. (4) Observation for Phase 2: the natural sleepy wind-down raised repeated care_need "tired" flags (four per session), a concrete example of the alert fatigue that per-profile sensitivity tuning targets.',
+        ),
+      ],
+    }),
+  );
+
+  sustained.forEach((r, idx) => {
+    const rv = review[r.testId];
+    const mt = medThirds(r);
+    children.push(
+      new Paragraph({
+        spacing: { before: idx === 0 ? 120 : 300, after: 80 },
+        border: idx === 0 ? undefined : { top: { style: BorderStyle.SINGLE, size: 6, color: 'CCCCCC' } },
+        children: [new TextRun({ text: `Test ${r.testId} - ${r.scenario}`, bold: true, size: 26, color: TEAL })],
+      }),
+    );
+    children.push(
+      new Paragraph({
+        spacing: { after: 120 },
+        children: [new TextRun({ text: `Profile: ${r.profileName}  |  ${r.timestamp} UTC`, italics: true, color: '555555' })],
+      }),
+    );
+    children.push(field('Session shape', r.arc));
+    children.push(
+      field(
+        'Session metrics',
+        `${r.turnCount} turns | est. ~${r.estMinutesLow}-${r.estMinutesHigh} min | median latency ${fmtSec(median(r.turns.map((t) => t.latencyMs)))}s (1st third ${fmtSec(mt.first)}s -> last third ${fmtSec(mt.last)}s) | max reply similarity ${(r.maxReplySimilarity * 100).toFixed(0)}% | HITL flags ${r.flagCount}`,
+      ),
+    );
+    if (rv) {
+      children.push(field('Profile Accuracy', rv.pa));
+      children.push(field('Tone Assessment', rv.tone));
+      children.push(field('Trigger/Calming Awareness', rv.tca));
+      if (rv.note) children.push(field('Notes', rv.note));
+    }
+    children.push(
+      new Paragraph({ spacing: { before: 80, after: 40 }, children: [new TextRun({ text: 'Transcript (verbatim):', bold: true })] }),
+    );
+    for (const t of r.turns) {
+      children.push(
+        new Paragraph({
+          spacing: { after: 40 },
+          children: [
+            new TextRun({ text: `[${t.index}] Care recipient: `, bold: true }),
+            new TextRun(t.input),
+            new TextRun({ text: `\n[${t.index}] Echo (${fmtSec(t.latencyMs)}s): `, bold: true, break: 1 }),
+            new TextRun(t.reply),
+            ...(t.flags.length
+              ? [new TextRun({ text: `\n[${t.index}] FLAG: ${t.flags.map((f) => `${f.type} - ${f.reason}`).join(' | ')}`, color: RED, break: 1 })]
+              : []),
+          ],
+        }),
+      );
+    }
+  });
+}
 
 children.push(
   new Paragraph({

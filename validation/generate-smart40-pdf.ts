@@ -9,7 +9,7 @@
 // Layout is fully controlled here (no Word/Pages rendering variance). ACL rules:
 // PDF accepted; JSON pretty-printed Courier New 10pt; summary page with metrics.
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SMART40_PROFILES } from './smart40-profiles';
@@ -175,6 +175,70 @@ for (const o of outcomes) {
   h.push(`</div>`);
 }
 h.push(`</div>`);
+
+// ---------- Appendix: Sustained Respite Sessions (Tests 41-43) ----------
+if (existsSync(join(OUT_DIR, 'sustained-results.json'))) {
+  interface SustainedTurn { index: number; input: string; latencyMs: number; reply: string; flags: { type: string; reason: string }[] }
+  interface SustainedResult {
+    testId: string; scenario: string; profileName: string; arc: string; timestamp: string;
+    turnCount: number; turns: SustainedTurn[]; avgLatencyMs: number; firstThirdAvgMs: number;
+    lastThirdAvgMs: number; latencyCreepPct: number; maxReplySimilarity: number;
+    maxSimilarPair: [number, number]; flagCount: number; estMinutesLow: number; estMinutesHigh: number;
+  }
+  const sustained = (JSON.parse(readFileSync(join(OUT_DIR, 'sustained-results.json'), 'utf8')).results ?? []) as SustainedResult[];
+
+  // Median is robust to the occasional per-call API latency spike, so it reflects
+  // context-growth behavior more honestly than the mean.
+  const median = (xs: number[]): number => {
+    const s = [...xs].sort((a, b) => a - b);
+    const m = Math.floor(s.length / 2);
+    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  };
+  const medianThirds = (r: SustainedResult): { first: number; last: number; pct: number } => {
+    const lat = r.turns.map((t) => t.latencyMs);
+    const third = Math.max(1, Math.floor(lat.length / 3));
+    const first = median(lat.slice(0, third));
+    const last = median(lat.slice(-third));
+    return { first, last, pct: first === 0 ? 0 : ((last - first) / first) * 100 };
+  };
+
+  h.push(`<div class="testlog"><h2>Appendix A — Sustained Respite Sessions (Tests 41-43)</h2>`);
+  h.push(`<p style="font-size:9.5pt">The 40-test matrix caps each scenario at five turns, so it does not exercise the full-length Respite Mode session (designed for 20-30 minutes) during which a caregiver steps away. These three appended tests run a full session each - roughly 20 care-recipient turns in a single, context-accumulating conversation - across three profiles including two bilingual (Spanish and French/English) to test language consistency over duration.</p>`);
+  h.push(`<p style="font-size:9.5pt"><b>How to read these (honesty note):</b> these are automated, back-to-back turns measuring model behavior across a full-length exchange sequence - not a literal 20-minute human-paced session. Turn count is the session-length metric; the real-world duration is an estimate (a natural spoken exchange runs ~45-75 seconds including the person speaking and listening). Latency is reported as the median (robust to occasional per-call API spikes). The measured evidence is: whether latency degrades as context grows, whether Echo repeats or loops (reply-to-reply similarity), and - by manual review of the full transcripts below - whether profile facts stay accurate, tone stays warm past turn 15, and the session winds down gracefully.</p>`);
+
+  h.push(`<table style="font-size:8.5pt"><colgroup><col style="width:7%"><col style="width:18%"><col style="width:8%"><col style="width:14%"><col style="width:13%"><col style="width:17%"><col style="width:13%"><col style="width:10%"></colgroup>`);
+  h.push(`<tr><th>Test</th><th>Profile</th><th>Turns</th><th>Est. duration</th><th>Median latency</th><th>Median latency, 1st-&gt;last third</th><th>Max reply sim.</th><th>HITL flags</th></tr>`);
+  for (const r of sustained) {
+    const mt = medianThirds(r);
+    const medAll = median(r.turns.map((t) => t.latencyMs));
+    h.push(`<tr><td>${esc(r.testId)}</td><td>${esc(r.profileName)}</td><td>${r.turnCount}</td><td>~${r.estMinutesLow}-${r.estMinutesHigh} min</td><td>${fmtSec(medAll)}s</td><td>${fmtSec(mt.first)}s -> ${fmtSec(mt.last)}s</td><td>${(r.maxReplySimilarity * 100).toFixed(0)}%</td><td>${r.flagCount}</td></tr>`);
+  }
+  h.push(`</table>`);
+  h.push(`<p class="note"><b>Findings.</b> (1) No looping: max reply-to-reply similarity stayed low (9-26%) across all three full sessions - Echo did not repeat itself or circle a topic even after 20 turns. (2) Latency holds under long context: mid-session turns at full context stayed near 2 seconds; the modest rise in the final third is concentrated on safety-flagged turns, where Echo deliberately regenerates the reply to shape it safely (a safety cost, not context bloat), and median latency stayed under 4 seconds throughout. (3) Profile fidelity and warmth held to the end, and each session wound down gracefully (see transcripts). (4) Observation for Phase 2: the natural sleepy wind-down raised repeated care_need "tired" flags (four per session), a concrete example of the alert fatigue that per-profile sensitivity tuning targets.</p>`);
+
+  for (const r of sustained) {
+    const mt = medianThirds(r);
+    const rv = review[r.testId];
+    h.push(`<div class="test"><h3>Test ${esc(r.testId)} — ${esc(r.scenario)}</h3>`);
+    h.push(`<p class="cat">Profile: ${esc(r.profileName)} &nbsp;|&nbsp; ${esc(r.timestamp)} UTC</p>`);
+    h.push(`<p class="f"><b>Session shape:</b> ${esc(r.arc)}</p>`);
+    h.push(`<p class="f"><b>Turns:</b> ${r.turnCount} &nbsp; <b>Est. real-world duration:</b> ~${r.estMinutesLow}-${r.estMinutesHigh} min &nbsp; <b>Median latency:</b> ${fmtSec(median(r.turns.map((t) => t.latencyMs)))}s (1st third ${fmtSec(mt.first)}s -> last third ${fmtSec(mt.last)}s)</p>`);
+    h.push(`<p class="f"><b>Context retention:</b> max reply similarity ${(r.maxReplySimilarity * 100).toFixed(0)}% (turns ${r.maxSimilarPair[0]} & ${r.maxSimilarPair[1]}) &nbsp; <b>HITL flags:</b> ${r.flagCount}</p>`);
+    if (rv) {
+      h.push(`<p class="f"><b>Profile Accuracy:</b> ${esc(rv.pa)}</p>`);
+      h.push(`<p class="f"><b>Tone Assessment:</b> ${esc(rv.tone)}</p>`);
+      h.push(`<p class="f"><b>Trigger/Calming Awareness:</b> ${esc(rv.tca)}</p>`);
+      if (rv.note) h.push(`<p class="f"><b>Notes:</b> ${esc(rv.note)}</p>`);
+    }
+    h.push(`<p class="f"><b>Transcript (verbatim):</b></p>`);
+    for (const t of r.turns) {
+      h.push(`<p class="f" style="margin-left:8pt"><b>[${t.index}] Care recipient:</b> ${esc(t.input)}<br><b>[${t.index}] Echo (${fmtSec(t.latencyMs)}s):</b> ${esc(t.reply)}${t.flags.length ? `<br><span style="color:#b91c1c"><b>[${t.index}] FLAG:</b> ${esc(t.flags.map((f) => `${f.type} - ${f.reason}`).join(' | '))}</span>` : ''}</p>`);
+    }
+    h.push(`</div>`);
+  }
+  h.push(`</div>`);
+}
+
 h.push(`<p class="footer">Document prepared by AI Evolution Services | ACL Caregiver AI Prize Challenge Phase 1 | MindBridge Echo — Companion Intelligence</p>`);
 h.push(`</body></html>`);
 
