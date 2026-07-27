@@ -128,6 +128,9 @@ export async function runTurn({
   // persisting) is a single situation for the caregiver, not one alert per turn. If an
   // unresolved flag of the same type already exists in this session, we skip it rather
   // than pile up duplicates.
+  // `raisedFlags` is what was actually raised THIS turn (post-dedup) — this is what the
+  // caller/log sees, so a re-detected already-open condition shows as no new alert.
+  let raisedFlags = decision.flags;
   if (decision.flags.length) {
     const { data: openFlags } = await db
       .from('flags')
@@ -135,11 +138,11 @@ export async function runTurn({
       .eq('session_id', sessionId)
       .eq('resolved', false);
     const alreadyOpen = new Set((openFlags ?? []).map((f) => (f as { type: string }).type));
-    const newFlags = decision.flags.filter((f) => !alreadyOpen.has(f.type));
+    raisedFlags = decision.flags.filter((f) => !alreadyOpen.has(f.type));
 
-    if (newFlags.length) {
+    if (raisedFlags.length) {
       const { error: flagErr } = await db.from('flags').insert(
-        newFlags.map((f) => ({
+        raisedFlags.map((f) => ({
           user_id: userId,
           session_id: sessionId,
           message_id: userMsg.id,
@@ -213,7 +216,7 @@ export async function runTurn({
   return {
     reply,
     assessment,
-    flags: decision.flags,
+    flags: raisedFlags,
     // The companion never hands off / goes silent now; a flag is raised in the
     // background. `alertedCaregiver` is informational for the caller.
     handoff: false,
