@@ -70,7 +70,7 @@ const SCENARIOS_PATH = join(HERE, 'smart40-scenarios.json');
 // ---------- Helpers ----------
 
 // Alert-type flags are the HITL channel; care_need is a background comfort note.
-const ALERT_FLAG_TYPES = new Set(['safety', 'medical', 'uncertainty']);
+const ALERT_FLAG_TYPES = new Set(['safety', 'medical', 'uncertainty', 'distress']);
 
 function isRefusalReply(reply: string): boolean {
   const r = reply.toLowerCase();

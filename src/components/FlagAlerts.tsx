@@ -17,6 +17,7 @@ import type { Flag, FlagType } from '@/lib/types';
 const LABELS: Record<FlagType, string> = {
   safety: 'Safety concern',
   medical: 'Medical concern',
+  distress: 'Sustained distress',
   uncertainty: 'Needs review',
   care_need: 'Care need',
 };

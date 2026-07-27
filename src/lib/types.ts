@@ -11,7 +11,7 @@ export type InputChannel = 'voice' | 'text';
 
 export type MemoryKind = 'worked' | 'didnt_work' | 'caregiver_note';
 
-export type FlagType = 'safety' | 'uncertainty' | 'medical' | 'care_need';
+export type FlagType = 'safety' | 'uncertainty' | 'medical' | 'care_need' | 'distress';
 
 // A physical/comfort need the caregiver should attend to (not a medical emergency).
 export type CareNeedType =

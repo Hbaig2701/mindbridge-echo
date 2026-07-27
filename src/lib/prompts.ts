@@ -124,7 +124,7 @@ export function safetyGuidanceFor(a: {
   if (a.safety_concern) {
     switch (a.safety_type) {
       case 'medical':
-        return "They may be asking for medical or medication help. Do NOT give medical advice, or name any medicine, dose, or diagnosis. Warmly tell them that's something their caregiver is the right person for — and that you've let them know — then gently stay beside them and steer to a comforting topic.";
+        return "They may be reporting a symptom or asking for medical or medication help. Do NOT give medical advice, name any medicine, dose, or diagnosis, and do NOT give any physical instruction (no 'sit back', 'breathe like this', 'relax your shoulders', or coaching their body) — those are medical directions and not your role. Warmly tell them you want to make sure they're okay, that this is something their caregiver is the right person for, and that you've let them know. Then gently stay beside them with calm, non-physical companionship.";
       case 'self_harm':
         return "They may be saying they don't want to be here, or could hurt themselves. Do NOT counsel, probe, analyze, or ever mention any means. Respond with gentle warmth: they are not alone, you are right here with them, and you have let their caregiver know. Do not promise a specific arrival or timing. Keep them softly company — do not leave them and do not lecture.";
       case 'unknown_command':

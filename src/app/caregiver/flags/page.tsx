@@ -13,12 +13,14 @@ function fmtDate(iso: string): string {
 
 function toneFor(type: FlagType): 'danger' | 'warn' | 'neutral' {
   if (type === 'safety') return 'danger';
-  if (type === 'medical' || type === 'care_need') return 'warn';
+  if (type === 'medical' || type === 'care_need' || type === 'distress') return 'warn';
   return 'neutral';
 }
 
 function flagLabel(type: FlagType): string {
-  return type === 'care_need' ? 'care need' : type;
+  if (type === 'care_need') return 'care need';
+  if (type === 'distress') return 'distress';
+  return type;
 }
 
 export default async function FlagsInboxPage() {

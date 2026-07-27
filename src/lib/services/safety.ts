@@ -26,8 +26,10 @@ export const SafetyService = {
       // Distress persisted across consecutive exchanges (e.g. escalating agitation over a
       // deceased spouse). One upset moment is a normal dementia moment the companion
       // handles warmly; SUSTAINED distress means the person likely needs in-person comfort.
+      // This is its OWN flag type — persistent distress is not a medical/self-harm safety
+      // concern, and typing it as such would inflate the safety category.
       flags.push({
-        type: 'safety',
+        type: 'distress',
         reason: `Distress has persisted across consecutive exchanges (${assessment.distress_type}) — the person may need in-person comfort from their caregiver.`,
       });
     } else if (assessment.uncertainty) {
