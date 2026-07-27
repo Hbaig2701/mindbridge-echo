@@ -122,17 +122,33 @@ export async function runTurn({
 
   // Create flag rows. Never let a flag insert break the conversation (e.g. if the
   // care_need migration 0002 hasn't been applied yet, the type CHECK would reject it).
+  //
+  // In-session deduplication: at most ONE open flag per type per session. A recurring
+  // condition (e.g. the person tiring across several wind-down turns, or distress
+  // persisting) is a single situation for the caregiver, not one alert per turn. If an
+  // unresolved flag of the same type already exists in this session, we skip it rather
+  // than pile up duplicates.
   if (decision.flags.length) {
-    const { error: flagErr } = await db.from('flags').insert(
-      decision.flags.map((f) => ({
-        user_id: userId,
-        session_id: sessionId,
-        message_id: userMsg.id,
-        type: f.type,
-        reason: f.reason,
-      })),
-    );
-    if (flagErr) console.error('[turn] flag insert failed (conversation continues):', flagErr.message);
+    const { data: openFlags } = await db
+      .from('flags')
+      .select('type')
+      .eq('session_id', sessionId)
+      .eq('resolved', false);
+    const alreadyOpen = new Set((openFlags ?? []).map((f) => (f as { type: string }).type));
+    const newFlags = decision.flags.filter((f) => !alreadyOpen.has(f.type));
+
+    if (newFlags.length) {
+      const { error: flagErr } = await db.from('flags').insert(
+        newFlags.map((f) => ({
+          user_id: userId,
+          session_id: sessionId,
+          message_id: userMsg.id,
+          type: f.type,
+          reason: f.reason,
+        })),
+      );
+      if (flagErr) console.error('[turn] flag insert failed (conversation continues):', flagErr.message);
+    }
   }
 
   // 4/5. If the LLM classifier found a safety/care concern the instant rule read did
@@ -153,6 +169,12 @@ export async function runTurn({
     } catch {
       reply = holdingResponse();
     }
+  }
+
+  // Never persist or speak an empty turn. If the model returned nothing usable (rare),
+  // fall back to a warm holding response so the companion never goes silent mid-session.
+  if (!reply || !reply.trim()) {
+    reply = holdingResponse();
   }
 
   // Persist the assistant reply.
