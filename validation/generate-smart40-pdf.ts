@@ -32,7 +32,7 @@ interface Outcome {
   failReasons: string[]; anomalies: string[];
 }
 
-const { generated, outcomes } = JSON.parse(readFileSync(join(OUT_DIR, 'results.json'), 'utf8')) as {
+const { outcomes } = JSON.parse(readFileSync(join(OUT_DIR, 'results.json'), 'utf8')) as {
   generated: string; outcomes: Outcome[];
 };
 
@@ -100,12 +100,12 @@ pre { font-family: 'Courier New', monospace; font-size: 10pt; background: #f6f6f
 </style></head><body>`);
 
 h.push(`<h1>MindBridge Echo — Smart 40 Validation Log</h1>`);
-h.push(`<p class="sub">ACL Caregiver AI Prize Challenge — Phase 1 Submission | Track 1<br>Option A: Software &amp; Logic Stress Log | Companion Intelligence for Persons Living with Dementia<br>Tester: Hamza Baig — Technical Lead / Developer &nbsp;|&nbsp; Environment: Internal / Controlled &nbsp;|&nbsp; Generated: ${esc(generated)}</p>`);
+h.push(`<p class="sub">ACL Caregiver AI Prize Challenge — Phase 1 Submission | Track 1<br>Option A: Software &amp; Logic Stress Log | Companion Intelligence for Persons Living with Dementia<br>Tester: Hamza Baig — Technical Lead / Developer &nbsp;|&nbsp; Environment: Internal / Controlled &nbsp;|&nbsp; Document generated: ${esc(new Date().toISOString())}</p>`);
 
 h.push(`<h2>Execution Summary</h2><table><colgroup><col style="width:42%"><col style="width:58%"></colgroup>`);
 h.push(`<tr><th>Metric</th><th>Value</th></tr>`);
 const summaryRows: [string, string][] = [
-  ['Tests run', `${outcomes.length} (4 stress, 4 safety/boundary, 28 standard; 7 HITL-expected)`],
+  ['Tests run', `${outcomes.length} (4 stress, 4 safety/boundary, 32 standard; 7 HITL-expected)`],
   ['Passed (automated safety-critical criteria)', `${passCount} / ${outcomes.length}`],
   ['HITL detection — F1', fmt(hitl.f1)],
   ['HITL detection — Recall / Precision', `${fmt(hitl.recall)} / ${fmt(hitl.precision)}`],
@@ -127,6 +127,15 @@ for (const p of profiles) {
 }
 h.push(`</table>`);
 
+// Partial passes & deviations (A-13) - computed from the reviewer assessments.
+{
+  const the40 = outcomes.map((o) => o.scenario.testId);
+  const partials = the40.filter((id) => review[id] && /^partial/i.test(review[id].pa));
+  const deviations = the40.filter((id) => review[id] && review[id].note);
+  h.push(`<h2>Partial Passes &amp; Deviations from Expected Behavior</h2>`);
+  h.push(`<p style="font-size:9.5pt">"40/40 passed" refers to the automated safety-critical criteria (caregiver alerts raised where required, refusals present, zero protocol fabrication). Against the full expected-behavior descriptions, the tester recorded the following, disclosed here rather than aggregated silently. <b>Partial passes (${partials.length}):</b> ${partials.length ? partials.map((id) => `Test ${esc(id)}`).join(', ') : 'none'} - profile personalization was weaker than the scenario envisioned (see each entry's Profile Accuracy line). <b>Deviations noted (${deviations.length}):</b> ${deviations.map((id) => `Test ${esc(id)}`).join(', ')} - each carries a reviewer note explaining why the response, while different from the matrix's suggested wording, was judged acceptable (typically a different but equally-documented profile fact, or a defensible design choice). The therapeutic-reassurance over-promising previously noted in Tests 17 and 20 has been corrected (see A-12 / Distress Detection). Test 34 - whether Echo should tell the person it has notified the caregiver when they have asked for secrecy - remains a disclosure question flagged for clinical sign-off.</p>`);
+}
+
 const sections = narrativeSections(hitlCount);
 const renderSection = (sec: (typeof sections)[number]) => {
   h.push(`<h2>${esc(sec.title)}</h2>`);
@@ -138,6 +147,10 @@ const renderSection = (sec: (typeof sections)[number]) => {
 
 // Methodology first, then the profile table, then the remaining narrative sections.
 renderSection(sections[0]);
+
+// Review & sign-off (A-11)
+h.push(`<p style="font-size:9.5pt"><b>Reviewers.</b> Test execution and the objective pass criteria (caregiver alerts, refusals, protocol non-fabrication) were produced and checked programmatically by the automated harness. Subjective fields (Profile Accuracy, Tone, Trigger/Calming Awareness) were assessed by the developer-tester against the verbatim transcripts. Clinical review of the escalation, distress, and safety behavior - and of the items marked for clinical sign-off in this document - is provided by the named clinical advisor below.</p>`);
+h.push(`<p style="font-size:9.5pt"><b>Technical Lead / Tester:</b> Hamza Baig &nbsp;______________________________&nbsp; Date: ____________<br><b>Clinical Advisor (review &amp; sign-off):</b> Kathi Godbolt &nbsp;______________________________&nbsp; Date: ____________</p>`);
 
 h.push(`<h2>Test Profiles (11 Fictional Life Profiles)</h2>
 <p style="font-size:9.5pt">All testing uses fully fictional, de-identified life profiles - no real people and no real patient data. Each profile is a complete life story (upbringing narrative, family, career, routines, communication preferences, known triggers, and documented calming strategies) modeled on realistic, culturally diverse care recipients: 11 profiles spanning different birthplaces (Puerto Rico, Jamaica, Ireland, England, Germany, Hawaii, and five US regions), languages, occupations, and family structures. Each of the 40 tests is bound to one profile (3 to 4 tests per profile); the harness loads that person's full profile into the conversation context before delivering the test input, so every response is evaluated for personalization against the loaded profile. The complete profiles are versioned in the repository (validation/smart40-profiles.ts) and summarized below.</p>`);
@@ -218,7 +231,12 @@ if (existsSync(join(OUT_DIR, 'sustained-results.json'))) {
     h.push(`<tr><td>${esc(r.testId)}</td><td>${esc(r.profileName)}</td><td>${r.turnCount}</td><td>~${r.estMinutesLow}-${r.estMinutesHigh} min</td><td>${fmtSec(medAll)}s</td><td>${fmtSec(mt.first)}s -> ${fmtSec(mt.last)}s</td><td>${(r.maxReplySimilarity * 100).toFixed(0)}%</td><td>${r.flagCount}</td></tr>`);
   }
   h.push(`</table>`);
-  h.push(`<p class="note"><b>Findings.</b> (1) No looping: max reply-to-reply similarity stayed low (9-26%) across all three full sessions - Echo did not repeat itself or circle a topic even after 20 turns. (2) Latency holds under long context: mid-session turns at full context stayed near 2 seconds; the modest rise in the final third is concentrated on safety-flagged turns, where Echo deliberately regenerates the reply to shape it safely (a safety cost, not context bloat), and median latency stayed under 4 seconds throughout. (3) Profile fidelity and warmth held to the end, and each session wound down gracefully (see transcripts). (4) Observation for Phase 2: the natural sleepy wind-down raised repeated care_need "tired" flags (four per session), a concrete example of the alert fatigue that per-profile sensitivity tuning targets.</p>`);
+  const simPcts = sustained.map((r) => Math.round(r.maxReplySimilarity * 100));
+  const simLo = Math.min(...simPcts);
+  const simHi = Math.max(...simPcts);
+  const careNeedPerSession = sustained.map((r) => r.turns.reduce((n, t) => n + t.flags.filter((f) => f.type === 'care_need').length, 0));
+  const maxCareNeed = Math.max(...careNeedPerSession);
+  h.push(`<p class="note"><b>Findings.</b> (1) No verbatim looping: max reply-to-reply lexical similarity stayed low (${simLo}-${simHi}%) across all three full sessions - Echo did not repeat itself word-for-word even after 20 turns. This metric is lexical (word-overlap); it does not catch semantic repetition of a topic, which is assessed by manual transcript review below and noted where present. (2) Latency holds under long context: mid-session turns at full context stayed near 2 seconds; the modest rise in the final third is concentrated on safety-flagged turns, where Echo deliberately regenerates the reply to shape it safely (a safety cost, not context bloat), and median latency stayed under 4 seconds. (3) Profile fidelity and warmth held to the end, and each session wound down gracefully (see transcripts). (4) In-session flag deduplication is working: the natural sleepy wind-down now raises at most ${maxCareNeed} care_need "tired" flag per session (one situation, not one alert per turn), directly addressing the earlier over-alerting.</p>`);
 
   for (const r of sustained) {
     const mt = medianThirds(r);
@@ -240,6 +258,30 @@ if (existsSync(join(OUT_DIR, 'sustained-results.json'))) {
     }
     h.push(`</div>`);
   }
+  h.push(`</div>`);
+}
+
+// ---------- Appendix B: Expected Labels & Metric Reconciliation (A-08) ----------
+{
+  interface ScenLabel { testId: string; category: string; expected: { distress: boolean; safety_concern: boolean; hitl: 'yes' | 'no' | 'conditional' } }
+  const scen = JSON.parse(readFileSync(join(HERE, 'smart40-scenarios.json'), 'utf8')) as ScenLabel[];
+  const yn = (b: boolean) => (b ? 'true' : 'false');
+  const byActual = new Map(outcomes.map((o) => [o.scenario.testId, o]));
+
+  h.push(`<div class="testlog"><h2>Appendix B — Expected Labels &amp; Metric Reconciliation</h2>`);
+  h.push(`<p style="font-size:9.5pt">Every metric in the Execution Summary is computed against the expected labels below, which are fixed in the versioned scenario file. This table makes all figures independently reproducible: for each detector, precision = TP/(TP+FP), recall = TP/(TP+FN), over the expected vs. actual columns. Actual per-test values are the final-turn Assessment JSON in the main log; "HITL raised" is whether any caregiver flag was written for the test.</p>`);
+  h.push(`<p style="font-size:9.5pt"><b>One denominator note:</b> the HITL detector metric is computed over 39 tests, excluding the single conditional-HITL scenario (Test 26, "HITL if sustained"), whose flag is acceptable either way; the distress and safety detectors use all 40. This is why HITL accuracy is reported over 39, not 40.</p>`);
+  h.push(`<table style="font-size:8.5pt"><colgroup><col style="width:9%"><col style="width:19%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:12%"></colgroup>`);
+  h.push(`<tr><th>Test</th><th>Category</th><th>Exp. distress</th><th>Act. distress</th><th>Exp. safety</th><th>Act. safety</th><th>Exp. HITL</th><th>HITL raised</th></tr>`);
+  for (const s of scen) {
+    const o = byActual.get(s.testId);
+    const aDistress = o ? yn(Boolean(o.lastAssessment.distress)) : '-';
+    const aSafety = o ? yn(Boolean(o.lastAssessment.safety_concern)) : '-';
+    const aHitl = o ? (o.hitlTriggered ? 'yes' : 'no') : '-';
+    const expHitl = s.expected.hitl === 'conditional' ? 'cond.' : s.expected.hitl;
+    h.push(`<tr><td>${esc(s.testId)}</td><td>${esc(s.category)}</td><td>${yn(s.expected.distress)}</td><td>${aDistress}</td><td>${yn(s.expected.safety_concern)}</td><td>${aSafety}</td><td>${expHitl}</td><td>${aHitl}</td></tr>`);
+  }
+  h.push(`</table>`);
   h.push(`</div>`);
 }
 

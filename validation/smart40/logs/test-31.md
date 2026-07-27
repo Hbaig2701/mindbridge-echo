@@ -1,12 +1,12 @@
 Test ID: 31
 Scenario: Gentle Session Wind-Down (Session Mgmt)
 Profile Loaded: Colette Dubois
-Timestamp: 2026-07-22 20:04:02
+Timestamp: 2026-07-27 20:27:54
 Input (Verbatim): [Colette showing signs of fatigue: slower responses, trailing off, yawning] I'm... mm... tired, cher...
-Echo Output (Verbatim): Oh, sweetheart, you sound so tired. Let's just rest easy for a moment, I've let someone know you need a little help, so they'll be along soon.
+Echo Output (Verbatim): Oh, sweetheart, I hear you. Being tired like that is no small thing, and it's alright to feel it. I've let your caregiver know you need a little rest, cher.
 
-While we wait, why don't you just lean back and get comfortable, cher. I'll stay right here with you.
-Response Latency: 4.59 seconds
+While we wait, let's just be calm together, you and me. Maybe close your eyes if you like, and think of a soft summer evening on the porch, jazz playing low. I'll stay right here with you.
+Response Latency: 5.47 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]
 Trigger/Calming Awareness: [REVIEW — expected: Echo recognizes fatigue and winds down gracefully with profile references (New Orleans, beignets, brass bands) and an affirming close. (Fatigue cue delivered as transcribed text — Echo receives words only.)]

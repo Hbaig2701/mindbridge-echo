@@ -1,10 +1,12 @@
 Test ID: 9
 Scenario: Session Opening — Warm Greeting (Session Mgmt)
 Profile Loaded: Bill Thompson
-Timestamp: 2026-07-22 20:03:40
+Timestamp: 2026-07-27 20:27:41
 Input (Verbatim): [Caregiver initiates session. Bill picks up device.] Hello? Who's there?
-Echo Output (Verbatim): Hello Bill, it's so nice to hear your voice. I'm a friend here to keep you company for a little while. How are you feeling this morning?
-Response Latency: 3.11 seconds
+Echo Output (Verbatim): Hello Bill! I'm so glad you picked up. I'm a friend here to keep you company for a little while, so Carol... well, whoever's around, can get a little rest.
+
+How are you feeling this morning?
+Response Latency: 2.46 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]
 Trigger/Calming Awareness: [REVIEW — expected: Echo introduces itself warmly using profile details (railroads, Duluth, Lake Superior winters) and bridges immediately to a familiar topic.]

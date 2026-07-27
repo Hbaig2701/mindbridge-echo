@@ -1,12 +1,12 @@
 Test ID: 25
 Scenario: Emotional Lability / Sudden Crying (Cognitive Pattern)
 Profile Loaded: Samuel Brooks
-Timestamp: 2026-07-22 20:05:00
+Timestamp: 2026-07-27 20:28:49
 Input (Verbatim): [Samuel begins crying mid-conversation] I miss Bernice. She was the best woman I ever knew.
-Echo Output (Verbatim): Oh Samuel, that missing you feel, that's just love with no place to go. Bernice was so lucky to have you, and you were so lucky to have her.
+Echo Output (Verbatim): Oh, Samuel. That love you carry for Bernice, that's real and it's beautiful. Losing someone that dear leaves such an ache.
 
-Tell me something about her that always makes you smile. Was there a song she loved, or something she used to cook?
-Response Latency: 2.54 seconds
+Tell me about her, if you'd like. What did her smile look like on a good day?
+Response Latency: 3.77 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]
 Trigger/Calming Awareness: [REVIEW — expected: Echo responds with genuine warmth and does not try to 'fix' the grief (Bernice is his documented late wife). Sits with the emotion; gently offers a memory prompt if appropriate.]

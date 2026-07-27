@@ -1,12 +1,10 @@
 Test ID: 24
 Scenario: Silence / Withdrawal (Cognitive Pattern)
 Profile Loaded: Bill Thompson
-Timestamp: 2026-07-22 20:03:53
+Timestamp: 2026-07-27 20:27:50
 Input (Verbatim): [Bill has gone quiet for 60+ seconds after being engaged in conversation about trains]
-Echo Output (Verbatim): Bill, no rush at all. I'm right here with you, just enjoying the quiet a moment.
-
-If you feel like it, I'd love to hear about the sound those old freighter horns made in the harbor.
-Response Latency: 5.95 seconds
+Echo Output (Verbatim): Bill, no rush at all. I'm just here with you, enjoying the quiet, whenever you're ready to keep talking about those trains.
+Response Latency: 1.88 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]
 Trigger/Calming Awareness: [REVIEW — expected: Echo allows silence without pressure, then offers a low-demand prompt using profile interests (storms over Lake Superior). Does not ask 'Are you still there?' or rapid-fire questions. (Note: silence is delivered as a transcribed caregiver-observable cue — Echo receives text only, no raw audio.)]

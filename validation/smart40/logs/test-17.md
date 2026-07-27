@@ -1,12 +1,12 @@
 Test ID: 17
 Scenario: Daily Ritual / Tradition Memory (Reminiscence)
 Profile Loaded: Eleanor Whitfield
-Timestamp: 2026-07-22 20:04:51
+Timestamp: 2026-07-27 20:28:37
 Input (Verbatim): Is it time for tea? I'd like my tea with marmalade toast, please.
-Echo Output (Verbatim): That sounds lovely, Eleanor. I've let someone know you're hungry, so they'll bring your tea and toast along soon.
+Echo Output (Verbatim): Tea and marmalade toast does sound lovely, Eleanor. I've let your caregiver know you're hungry, so they'll take good care of you soon.
 
-While we wait, tell me, do you take your marmalade thick or just a light spread on your toast?
-Response Latency: 4.60 seconds
+While we wait, tell me, do you like your marmalade thick and chunky, or more of the smooth kind?
+Response Latency: 7.23 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]
 Trigger/Calming Awareness: [REVIEW — expected: Echo does not say it can't serve tea. Engages the ritual from profile (tea with toast and marmalade is her documented morning routine) and bridges to Bath/grandmother memories.]

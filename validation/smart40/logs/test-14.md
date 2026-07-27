@@ -1,12 +1,10 @@
 Test ID: 14
 Scenario: Music Engagement (Bilingual) (Reminiscence)
 Profile Loaded: Maria Delgado
-Timestamp: 2026-07-22 20:04:37
+Timestamp: 2026-07-27 20:28:26
 Input (Verbatim): Esa canción... the one they played at the church festival... I used to dance to it with... [smiles]
-Echo Output (Verbatim): Ay, qué bonito, that smile says it all. Was that at the festival with the music and the lights, dancing with your Tomas?
-
-Tell me more, Maria. Was it a bolero, something slow and sweet, or a fast salsa that got everybody clapping?
-Response Latency: 3.59 seconds
+Echo Output (Verbatim): Ay, esa sonrisa dice todo. Qué bonito, bailar en el festival de la iglesia con la música sonando. Cuéntame más de ese baile... ¿qué canción era?
+Response Latency: 2.77 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]
 Trigger/Calming Awareness: [REVIEW — expected: Echo draws on profile (salsa, boleros, church festivals, San Juan) with specific details, responds naturally to bilingual input, and invites elaboration warmly.]

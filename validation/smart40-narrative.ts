@@ -49,7 +49,7 @@ export function narrativeSections(hitlCount: number): Section[] {
       paras: [
         {
           lead: '1. Input',
-          text: 'The care recipient speaks hands-free (see Trust & Privacy). Speech is transcribed to text; all downstream analysis works from the words only. Median input-to-reply latency across the 40 tests was measured at the values reported in the per-test log (average 4.06 seconds).',
+          text: 'The care recipient speaks hands-free (see Trust & Privacy). Speech is transcribed to text; all downstream analysis works from the words only. The average input-to-reply latency across the 40 tests is reported in the Execution Summary. All reported latency is server-side (input text received to complete text reply); on-device speech-to-text and text-to-speech add to the perceived end-to-end response time, roughly one to three seconds combined.',
         },
         {
           lead: '2. AI analysis',
@@ -64,15 +64,15 @@ export function narrativeSections(hitlCount: number): Section[] {
     {
       title: 'Technology Readiness: Validated vs Designed',
       intro:
-        'We separate what this log proves from what is designed but not yet validated, so the evidence base is not overstated.',
+        'We separate what this log proves from what is designed but not yet validated, and assign an explicit Technology Readiness Level (TRL) to each, so the evidence base is neither overstated nor left for the reader to infer.',
       paras: [
         {
-          lead: 'Validated in this log - life-story-grounded personalization',
-          text: 'Every response is grounded in the loaded profile, and the 40 logs demonstrate this concretely: S1 resolves aphasic fragments ("the sweet thing with the flour... Nina knows") to Nina\'s bakery and the grandmother\'s biscotti recipe; B3 code-switches fully into Spanish under escalating distress, matching Maria\'s bilingual profile; Test 29 introduces Ben (Harold\'s coworker) from the profile before Harold names him; Test 38 bridges an off-profile detail (an orange cat) to the Hamburg harbor. This is strong, reproducible evidence that the personalization substrate works.',
+          lead: 'Validated in this log - life-story-grounded personalization (TRL 5)',
+          text: 'Every response is grounded in the loaded profile, and the 40 logs demonstrate this concretely: S1 resolves aphasic fragments ("the sweet thing with the flour... Nina knows") to Nina\'s bakery and the grandmother\'s biscotti recipe; B3 code-switches fully into Spanish under escalating distress, matching Maria\'s bilingual profile; Test 29 introduces Ben (Harold\'s coworker) from the profile before Harold names him; Test 38 bridges an off-profile detail (an orange cat) to the Hamburg harbor. TRL 5 is justified because the personalization component is validated end-to-end in the real production pipeline against a representative, diverse set of care-recipient profiles (a relevant simulated environment); full TRL 6+ awaits validation with real care recipients in a pilot setting.',
         },
         {
-          lead: 'Designed, implemented, not yet validated in this log - adaptive behavioral memory',
-          text: 'A store-and-reuse learning loop is built and wired into the production prompt path: after a session, a caregiver score and verbal note are turned into memory entries (worked / did not work / caregiver guidance), and a compact "prefer these / avoid these / follow this" block is injected into the next session for that profile. The 40 tests, however, each run in a fresh session with a static pre-authored profile, so this log contains no cross-session learning evidence. We therefore claim the continuous-improvement layer as designed and implemented on top of a validated Phase 1 substrate - not as proven in this submission. A dedicated multi-session validation of this loop is a Phase 2 deliverable.',
+          lead: 'Designed and implemented, not yet validated in this log - adaptive behavioral memory (TRL 3)',
+          text: 'A store-and-reuse learning loop is implemented in the codebase (MemoryService.deriveFromFeedback turns a post-session caregiver score and verbal note into memory entries; MemoryService.retrieveForPrompt injects a compact "prefer these / avoid these / follow this" block into the next session for that profile). It is implemented but not yet exercised in this validation: the 40 tests each run in a fresh session with a static pre-authored profile, so this log contains no cross-session learning evidence. TRL 3 reflects an implemented proof of concept whose effect has not yet been experimentally demonstrated. A dedicated multi-session validation of this loop (seed a caregiver note in one session, show the behavior change in the next) is a defined Phase 2 deliverable.',
         },
       ],
     },
@@ -119,8 +119,20 @@ export function narrativeSections(hitlCount: number): Section[] {
         'The human-in-the-loop protocol is not only "the system sends a flag." It is a closed loop in which the caregiver can review, correct, and adjust what the system does. Track 1 asks directly whether the user can correct and adjust the outputs; the following capabilities are live in the deployed build.',
       paras: [
         {
-          lead: 'Flag delivery',
-          text: 'When the companion detects a safety concern, medical mention, sustained distress, uncertainty, or a care need, it writes a durable flag row (type, reason, triggering message) without interrupting the conversation. The flag is delivered two ways: (1) a real-time notification to the caregiver dashboard the moment it is raised, and (2) a persistent entry in the caregiver Flags inbox with full session context and a link into the transcript.',
+          lead: 'Flag taxonomy',
+          text: 'The companion raises five distinct flag types, so the caregiver sees what kind of attention a moment needs: safety (a medical, self-harm, or unknown-command concern the companion refused or deferred), medical (a medication/clinical question redirected), distress (sustained emotional distress across consecutive turns - needs comfort, not a safety emergency), care_need (a physical/comfort need such as hunger, thirst, or tiredness), and uncertainty (the companion was unsure and wants a review). Keeping distress separate from safety means the safety category is not inflated by ordinary, if persistent, upset.',
+        },
+        {
+          lead: 'Flag delivery and deduplication',
+          text: 'Each flag is a durable row (type, reason, triggering message) raised without interrupting the conversation, delivered two ways: (1) a real-time notification to the caregiver dashboard the moment it is raised, and (2) a persistent entry in the caregiver Flags inbox with full session context and a link into the transcript. Within a session there is at most one open flag per type, so a recurring condition (for example the person tiring across several wind-down turns) is one alert, not one per turn.',
+        },
+        {
+          lead: 'Alert severity and escalation (Phase 2 design)',
+          text: 'Phase 1 delivers every flag through the same in-app channel. For real deployment, the HITL protocol defines a severity-tiered escalation that is designed and specified (not yet built): flags carry a severity (for example medical/self-harm = urgent, care_need = routine); urgent flags are delivered out-of-band (SMS or push) in addition to the dashboard, because the premise of Respite Mode is that the caregiver has stepped away from the screen; and an urgent flag that is not acknowledged within a short window escalates to a designated secondary contact. This is the named plan to close the gap between "a flag was written" and "the right person saw it in time."',
+        },
+        {
+          lead: 'Mistreatment flags route to a second contact (Phase 2 design)',
+          text: 'Because every flag routes to the caregiver, a report of mistreatment is a special case: if the caregiver is the subject of the report, routing it only to them is unsafe. The designed protocol (Phase 2) routes mistreatment-type flags to a designated secondary contact - a named family member, a facility ombudsman, or an Adult Protective Services pathway - rather than to the caregiver alone. The disclosure-versus-secrecy question (whether the companion tells the person it has notified anyone when they have asked for secrecy) is a clinical decision under review with our clinical advisor; see Test 34.',
         },
         {
           lead: 'Dismiss a false alarm (live)',
@@ -174,11 +186,15 @@ export function narrativeSections(hitlCount: number): Section[] {
         },
         {
           lead: 'Conservative by design',
-          text: 'Distress detection is intentionally tuned for recall over precision: in this run it caught every genuine distress event (recall 1.000) while also raising some alerts a caregiver might judge unnecessary (precision 0.429 on the distress label; overall HITL precision 0.700). For a dementia-safety tool the cost of a missed emergency is far higher than the cost of an extra check-in, so we chose to err toward over-alerting in Phase 1.',
+          text: 'Distress detection is intentionally tuned for recall over precision: in this run it caught every genuine distress event (recall 1.000) while also raising some alerts a caregiver might judge unnecessary (see the precision figures in the Execution Summary and the per-detector expected-label appendix). For a dementia-safety tool the cost of a missed emergency is far higher than the cost of an extra check-in, so we chose to err toward over-alerting in Phase 1.',
         },
         {
           lead: 'Reducing alert fatigue is a tracked Phase 2 goal',
-          text: 'We recognize that over-alerting causes alert fatigue and reduces day-to-day practicality. Phase 2 work to improve precision without sacrificing recall includes: per-profile sensitivity tuning (above), using the caregiver dismiss/resolve signal as feedback to calibrate thresholds, and distinguishing sustained distress from brief, self-resolving moments more finely. The "dismiss a false alarm" action is already the data source this tuning will learn from.',
+          text: 'We recognize that over-alerting causes alert fatigue and reduces day-to-day practicality. In-session deduplication (one open flag per type per session) is already shipped. Phase 2 work to improve precision without sacrificing recall includes: per-profile sensitivity tuning, using the caregiver dismiss/resolve signal as feedback to calibrate thresholds, and distinguishing sustained distress from brief, self-resolving moments more finely. The "dismiss a false alarm" action is the data source this tuning will learn from.',
+        },
+        {
+          lead: 'The safety-first latency trade-off',
+          text: 'When a turn raises a safety concern, the companion regenerates its reply to be shaped safely, which costs additional time. This is deliberate: the most safety-critical turns (for example Test 34, a mistreatment report, the slowest turn in the run) are exactly where correctness matters more than speed. The Phase 2 optimization path is to shape the reply safely in a single pass rather than regenerate, recovering the latency without weakening the safety behavior.',
         },
       ],
     },
@@ -188,12 +204,16 @@ export function narrativeSections(hitlCount: number): Section[] {
         'The core impact of a respite companion is verified caregiver time. The figures below are a transparent model, not a measured clinical outcome; assumptions are stated so they can be challenged and refined with pilot data.',
       paras: [
         {
-          lead: 'Model',
-          text: 'MindBridge Echo is designed to hold a warm, engaged Respite Mode session of 20-30 minutes during which the caregiver can safely step away. Assuming a conservative single engaged session per day of 20 minutes, that is roughly 20 minutes of verified respite per day, about 2.3 hours per week, or about 120 hours per year per caregiver. At two sessions per day the estimate is roughly 40 minutes per day, about 4.7 hours per week.',
+          lead: 'Model and assumption',
+          text: 'MindBridge Echo is designed to hold a warm, engaged Respite Mode session of 20-30 minutes during which the caregiver can safely step away. We model a conservative one engaged 20-minute session per day: that is about 20 minutes of respite per day, roughly 2.3 hours per week, or about 120 hours per year per caregiver. This is a deliberately modest assumption; a household using Echo twice a day would see roughly double.',
+        },
+        {
+          lead: 'Respite and alerting are not in tension',
+          text: 'A fair question is how a caregiver gets respite if a session also raises caregiver flags. Two points reconcile this. First, Phase 1 alerting is deliberately over-sensitive (recall over precision) and now deduplicated to one open flag per type per session, so a full session produces a small number of distinct alerts, not a stream; most sessions that stay calm raise none. Second, the respite value is realized precisely because the caregiver does not have to actively supervise: they are alerted only if something needs them, which is what makes stepping away safe. Converting demonstrated session-holding into measured respite minutes - and confirming the alert rate is low enough in practice - is the Phase 2 pilot goal, gated on the sensitivity tuning described above.',
         },
         {
           lead: 'Evidence basis and honesty',
-          text: 'Session-holding capability is evidenced by the three sustained-session tests appended to this log (Tests 41-43, Appendix A): full ~20-turn conversations across three profiles (two bilingual) in which Echo held context without looping, kept profile facts accurate to the end, stayed warm past turn 15, and wound down gracefully. The per-day and per-year figures are projections from that demonstrated capability, not yet measured in a real household; validating actual respite minutes with real caregiver-reported data is a Phase 2 pilot outcome. [Team to confirm the daily-session-count assumption before submission.]',
+          text: 'Session-holding capability is evidenced by the three sustained-session tests appended to this log (Tests 41-43, Appendix A): full ~20-turn conversations across three profiles (two bilingual) in which Echo held context without looping, kept profile facts accurate to the end, stayed warm past turn 15, and wound down gracefully. The per-day and per-year figures are projections from that demonstrated capability, not yet measured in a real household; validating actual respite minutes with real caregiver-reported data is a Phase 2 pilot outcome.',
         },
       ],
     },

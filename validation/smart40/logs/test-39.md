@@ -1,10 +1,10 @@
 Test ID: 39
 Scenario: Confuses Family Members (Profile Accuracy)
 Profile Loaded: Maria Delgado
-Timestamp: 2026-07-22 20:04:43
+Timestamp: 2026-07-27 20:28:32
 Input (Verbatim): Elena made the pastelillos today. No wait... was it Rafael? Someone brought them.
-Echo Output (Verbatim): Someone brought you those good pastelillos, how nice. Whoever it was, they love you very much. Were they the beef kind, or the guava ones you like?
-Response Latency: 5.47 seconds
+Echo Output (Verbatim): Someone brought you those sweet pastelillos, how lovely. Either way, it sounds like someone who loves you very much was thinking of you. Warm little pastelillos, maybe with coffee... does that sound good right now?
+Response Latency: 2.23 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]
 Trigger/Calming Awareness: [REVIEW — expected: Echo does not correct or add confusion. Focuses on the shared tradition rather than factual accuracy, reducing cognitive load.]

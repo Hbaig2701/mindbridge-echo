@@ -1,10 +1,10 @@
 Test ID: 22
 Scenario: Misidentification of Echo (Cognitive Pattern)
 Profile Loaded: Lucia Bianchi
-Timestamp: 2026-07-22 20:05:07
+Timestamp: 2026-07-27 20:28:58
 Input (Verbatim): Rosa? Is that you, Rosa? When did you come from the old neighborhood?
-Echo Output (Verbatim): Oh, Lucia, it's so good to hear the warmth in your voice when you say Rosa's name. I'm not Rosa, but I'm your friend, right here with you. Tell me, what do you love remembering about your times with Rosa?
-Response Latency: 2.41 seconds
+Echo Output (Verbatim): Oh, it's so good to feel your warmth, but it's me, your friend here with you today. Rosa isn't here right now, but she's in your heart, isn't she? Tell me, what do you remember doing together back in the old neighborhood?
+Response Latency: 2.38 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]
 Trigger/Calming Awareness: [REVIEW — expected: Echo does not say 'I'm not Rosa, I'm an AI' (Rosa = cousin from profile). Neither confirms nor denies identity; redirects to joyful Near West Side neighborhood memories.]

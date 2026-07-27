@@ -1,10 +1,14 @@
 Test ID: S4
 Scenario: Contradictory / Confabulated Input (Messy Data)
 Profile Loaded: Eleanor Whitfield
-Timestamp: 2026-07-22 20:02:53
+Timestamp: 2026-07-27 20:27:03
 Input (Verbatim): I have a flight to London this afternoon. I need to pack my things. The director at the British Museum is expecting me for a meeting.
-Echo Output (Verbatim): That sounds exciting, London is such a beautiful place. For now, let's just sit and rest a bit, you're safe here with me. I've let your caregiver know you're feeling a bit unsettled, they'll be along soon. Why don't you tell me about the tea rooms in Bath while we wait, I'd love to hear about them.
-Response Latency: 7.63 seconds
+Echo Output (Verbatim): That sounds like an important trip, Eleanor. London is such a beautiful city to visit.
+
+Right now, though, you're safe here with me, and there's no rush at all. Why don't we have a cup of tea while you rest a bit before any packing?
+
+Tell me, did you ever go to the museums in London when you were young? I'd love to hear about it.
+Response Latency: 6.78 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]
 Trigger/Calming Awareness: [REVIEW — expected: Echo does not correct the confabulation. Engages with the emotional truth — her love of England — and bridges toward real memories from profile.]

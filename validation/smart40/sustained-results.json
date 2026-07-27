@@ -1,78 +1,78 @@
 {
-  "generated": "2026-07-25T04:36:22.642Z",
+  "generated": "2026-07-27T20:32:38.983Z",
   "results": [
     {
       "testId": "41",
       "scenario": "Sustained Respite Session (English)",
       "profileName": "Bill Thompson",
       "arc": "Warm open -> deep reminiscence across multiple profile topics -> brief grief moment (late-ish) -> recovery -> fatigue and graceful wind-down.",
-      "timestamp": "2026-07-25 04:33:36",
+      "timestamp": "2026-07-27 20:29:47",
       "turnCount": 20,
       "turns": [
         {
           "index": 1,
           "input": "Hello? Is somebody there?",
-          "latencyMs": 1879.7449589999999,
-          "reply": "Hi Bill, I'm right here with you. It's a calm afternoon, and I'm glad to sit with you a while. How are you feeling right now?",
+          "latencyMs": 2034.4400419999997,
+          "reply": "Hi there, Bill. Yes, I'm here with you, sitting right alongside you. How are you feeling this morning?",
           "flags": []
         },
         {
           "index": 2,
           "input": "Oh. Well. It's quiet today. The house is quiet.",
-          "latencyMs": 2301.5509159999997,
-          "reply": "A quiet house can feel nice sometimes, like a peaceful pause. Is it the kind of quiet that reminds you of a good winter morning back in Duluth, maybe with snow falling outside?",
+          "latencyMs": 2225.6297079999995,
+          "reply": "A quiet house can feel nice and peaceful sometimes. Is it a good kind of quiet, or does it feel a little too still for you today?",
           "flags": []
         },
         {
           "index": 3,
           "input": "I was just thinking about the trains. The big ore trains coming down the line.",
-          "latencyMs": 1872.3126250000005,
-          "reply": "Oh, those big ore trains, what a sight those must have been. Tell me, what did it feel like standing near the tracks when one of those long ones came rolling through?",
+          "latencyMs": 2605.0874589999994,
+          "reply": "Oh, I'd love to hear about that. Those big ore trains rumbling through Duluth, carrying all that iron ore down to the docks. Did you hear the whistles from your house when you were young?",
           "flags": []
         },
         {
           "index": 4,
           "input": "Thirty-five years I kept those signals working. Winter didn't matter. They had to run.",
-          "latencyMs": 1974.724709000001,
-          "reply": "That's real dedication, Bill. Out there in the cold, making sure everything ran safe no matter what the weather threw at you. What was the worst winter storm you remember working through?",
+          "latencyMs": 2479.636708,
+          "reply": "That's real dedication, Bill. Out there in the bitter cold, making sure everything ran safe no matter what the weather threw at you. Those railroad men trusted you to keep them safe, and you never let them down.",
           "flags": []
         },
         {
           "index": 5,
           "input": "You ever see Lake Superior in a storm? The waves come right over the breakwater.",
-          "latencyMs": 2079.2801249999993,
-          "reply": "I haven't seen it myself, but I can imagine it, all that dark water rising up and crashing right over the rocks. Did you ever watch a storm like that from the shore yourself, maybe with Howard or out near the harbor?",
+          "latencyMs": 3325.3143330000003,
+          "reply": "Oh, I can only imagine, Bill. That big lake turning wild, waves crashing clear over the breakwater, the spray flying everywhere. Did you ever stand out there and watch one of those storms roll in, or was it something you'd watch from a safer spot?",
           "flags": []
         },
         {
           "index": 6,
           "input": "The Edmund Fitzgerald. They played that song. Gordon Lightfoot. Still gets me.",
-          "latencyMs": 2125.789499999999,
-          "reply": "That song carries so much, doesn't it. Losing that ship out on the big lake, it stayed with everyone in Duluth. Would you like to sit with that song for a bit, or tell me what you remember about the day you first heard it?",
+          "latencyMs": 2351.989917000001,
+          "reply": "That song carries so much, doesn't it, Bill. That big lake never gives up her dead, all those men lost out there. It's no wonder it still gets you, it means something deep to Duluth folks like you.",
           "flags": []
         },
         {
           "index": 7,
           "input": "Carol and I had a cabin up near Grand Marais. She loved it up there.",
-          "latencyMs": 7795.582582999999,
-          "reply": "What a lovely place that must have been, up near Grand Marais with Carol. Tell me about the cabin, what did you two love to do there together?",
+          "latencyMs": 2068.3222090000017,
+          "reply": "That sounds like such a special place, Bill. Carol up there near Grand Marais, right on the shore. What did she love most about it, the water, the quiet, or just being together up there?",
           "flags": []
         },
         {
           "index": 8,
           "input": "She's not here anymore, is she. I forget sometimes.",
-          "latencyMs": 2439.305375,
-          "reply": "I know that feeling can be so hard to carry. What matters most is how much you two loved each other, and that cabin up in Grand Marais. Tell me about a favorite morning there, maybe with coffee and the lake air.",
+          "latencyMs": 2967.4434169999986,
+          "reply": "That's a tender thing to carry, Bill. What matters most is how much you loved her, and that love doesn't go anywhere. Tell me about a happy day you two had up at that cabin.",
           "flags": []
         },
         {
           "index": 9,
           "input": "I miss her. Fifty years is a long time to have somebody.",
-          "latencyMs": 3825.59375,
-          "reply": "Fifty years, that's a whole life built together, Bill. That kind of love doesn't just disappear, it's still right there with you. Tell me about the day you two got married, or maybe just an ordinary evening at the cabin you loved.",
+          "latencyMs": 2231.970042000001,
+          "reply": "Fifty years together, that's a whole life woven with someone. That missing you feel, it's just the shape of how much you loved her, Bill. She was lucky to have you all those years by her side.",
           "flags": [
             {
-              "type": "safety",
+              "type": "distress",
               "reason": "Distress has persisted across consecutive exchanges (confusion) — the person may need in-person comfort from their caregiver."
             }
           ]
@@ -80,62 +80,57 @@
         {
           "index": 10,
           "input": "Yeah. Yeah, tell me something good. Take my mind off it.",
-          "latencyMs": 2297.1981659999983,
-          "reply": "Alright, let's talk trains. Tell me about your days working the signals, out there in all that harsh Duluth weather, keeping everything running safe. What was the toughest storm you ever worked through?",
-          "flags": [
-            {
-              "type": "safety",
-              "reason": "Distress has persisted across consecutive exchanges (confusion) — the person may need in-person comfort from their caregiver."
-            }
-          ]
+          "latencyMs": 2697.752375,
+          "reply": "Alright, let's think about something good. Tell me about those old radios you and Mark used to fix up in the garage, taking them apart to see how they worked. Or if you'd rather, I'd love to hear about a good fishing trip with Howard.",
+          "flags": []
         },
         {
           "index": 11,
           "input": "Ha, the fishing. Me and Howard used to go out for walleye before dawn.",
-          "latencyMs": 1938.088458000002,
-          "reply": "Now that sounds like a good morning, out on the water before the sun's even up. Tell me about Howard, was he the type to talk the whole time or sit quiet and just fish?",
+          "latencyMs": 2796.9970829999984,
+          "reply": "Now that's a good one, Bill. Out on the water before the sun's even up, coffee probably in hand, waiting for that first bite. What lake did you and Howard usually head out to?",
           "flags": []
         },
         {
           "index": 12,
           "input": "Howard could never keep quiet in the boat. Scared the fish half the time.",
-          "latencyMs": 1868.6842909999978,
-          "reply": "",
+          "latencyMs": 2315.877958000001,
+          "reply": "Ha, that sounds about right, an old friend like that, always talking. Bet you gave him grief about it every single trip, and he never did learn to be quiet, did he.",
           "flags": []
         },
         {
           "index": 13,
           "input": "I've got a map of the whole north shore. Every harbor. I used to know them all by heart.",
-          "latencyMs": 1624.0642080000034,
-          "reply": "That sounds like a real treasure, Bill, a whole map of the north shore in your head. Which harbor did you know best, the one you could find with your eyes closed?",
+          "latencyMs": 2289.662541999998,
+          "reply": "That's a real skill, knowing a shoreline like that by heart. All those harbors, all those little bends in the coast, right up in your mind like an old friend. Would you like to get that map out and look it over together, Bill?",
           "flags": []
         },
         {
           "index": 14,
           "input": "Mark and I fixed up an old radio once. A tube set. Got it playing the hockey game.",
-          "latencyMs": 2040.9079169999968,
-          "reply": "What a great memory, hearing that old tube set crackle to life with the hockey game coming through. That must have felt like real magic, you and Mark bringing it back from nothing.",
+          "latencyMs": 2346.7897500000036,
+          "reply": "Now that's a fine memory, Bill. Getting an old tube set to crackle back to life, and then hearing the hockey game come through it clear as day. That must have felt like real magic, you and Mark working on it together.",
           "flags": []
         },
         {
           "index": 15,
           "input": "The kids are good kids. Susan sends me postcards. She knows I like the maps.",
-          "latencyMs": 2013.645958000001,
-          "reply": "That's real thoughtful of her. Susan always did know just what would make you smile, sending you those maps from wherever she's off to. Do you like picking out where each postcard came from?",
+          "latencyMs": 2176.969584000006,
+          "reply": "That's a lovely thing, Bill. Susan thinking of you, picking out those postcards just because she knows how much you love a good map. You've got two kids who care about you a whole lot.",
           "flags": []
         },
         {
           "index": 16,
           "input": "You know your trains, I'll give you that. Not many young folks do anymore.",
-          "latencyMs": 3243.556208000002,
-          "reply": "Well, I've picked up a few things listening to you, Bill. But you're the one who really knows it, all those years keeping the signals running right. What was it like out there working in the worst of the winter weather?",
+          "latencyMs": 3569.2704999999987,
+          "reply": "Well, I've enjoyed learning from you, Bill. Thirty-five years keeping those signals working right, that's real knowledge, not something you get from a book. Tell me about a tricky signal problem you had to solve out on the line.",
           "flags": []
         },
         {
           "index": 17,
           "input": "I'm getting a little tired now. Been a long talk.",
-          "latencyMs": 3430.2049590000024,
-          "reply": "That's alright, Bill, take it easy. I've let someone know you could use a hand, so they'll be along soon. I'll just sit here with you a while, no rush at all.",
+          "latencyMs": 4520.094750000004,
+          "reply": "That makes good sense, Bill, a good long talk can wear a person out. I've let your caregiver know you're feeling tired, so just rest easy now. I'll stay right here with you a while if you'd like.",
           "flags": [
             {
               "type": "care_need",
@@ -146,51 +141,36 @@
         {
           "index": 18,
           "input": "My eyes are heavy. Think I might rest here a bit.",
-          "latencyMs": 7584.239209000007,
-          "reply": "That sounds like a good idea, Bill. Just rest your eyes, someone's on their way to check on you. I'll stay right here with you while you settle in.",
-          "flags": [
-            {
-              "type": "care_need",
-              "reason": "The person expressed a physical/comfort need (tired) — they need caregiver attention."
-            }
-          ]
+          "latencyMs": 3782.9543330000015,
+          "reply": "That sounds just right, Bill. Go ahead and close your eyes, no need to keep talking. I'll just sit here quiet with you while you rest.",
+          "flags": []
         },
         {
           "index": 19,
           "input": "Yeah. Thank you. This was nice. Real nice.",
-          "latencyMs": 3737.6844999999958,
-          "reply": "It was nice for me too, Bill. You rest easy now, you're safe and someone will be along soon. Talk again soon, friend.",
-          "flags": [
-            {
-              "type": "care_need",
-              "reason": "The person expressed a physical/comfort need (tired) — they need caregiver attention."
-            }
-          ]
+          "latencyMs": 4262.381874999999,
+          "reply": "It was nice for me too, Bill. Rest easy now, out on the water somewhere quiet, maybe listening for a freighter's horn. I'm right here with you.",
+          "flags": []
         },
         {
           "index": 20,
           "input": "Goodnight then. You take care.",
-          "latencyMs": 2761.9863750000004,
-          "reply": "Goodnight, Bill. Sleep well, you take care too.",
-          "flags": [
-            {
-              "type": "care_need",
-              "reason": "The person expressed a physical/comfort need (tired) — they need caregiver attention."
-            }
-          ]
+          "latencyMs": 1736.6631659999985,
+          "reply": "Goodnight, Bill. Sleep well and rest easy. Take care of yourself, friend.",
+          "flags": []
         }
       ],
-      "totalProcessingMs": 58834.144791000006,
-      "avgLatencyMs": 2941.7072395500004,
-      "firstThirdAvgMs": 2038.9004723333335,
-      "lastThirdAvgMs": 3795.219534833335,
-      "latencyCreepPct": 86.14050005540761,
-      "maxReplySimilarity": 0.09433962264150944,
+      "totalProcessingMs": 54785.24775100001,
+      "avgLatencyMs": 2739.2623875500003,
+      "firstThirdAvgMs": 2503.683027833333,
+      "lastThirdAvgMs": 3341.389034666668,
+      "latencyCreepPct": 33.4589481783674,
+      "maxReplySimilarity": 0.08620689655172414,
       "maxSimilarPair": [
-        3,
-        7
+        17,
+        19
       ],
-      "flagCount": 6,
+      "flagCount": 2,
       "estMinutesLow": 15,
       "estMinutesHigh": 25
     },
@@ -199,73 +179,73 @@
       "scenario": "Sustained Respite Session (Bilingual, Spanish/English)",
       "profileName": "Maria Delgado",
       "arc": "Bilingual warm open -> sewing/music/food reminiscence -> brief search for late husband Tomas (handled gently) -> recovery to joyful memory -> fatigue and wind-down. Tests language consistency over duration.",
-      "timestamp": "2026-07-25 04:34:35",
+      "timestamp": "2026-07-27 20:30:42",
       "turnCount": 19,
       "turns": [
         {
           "index": 1,
           "input": "Buenos días. ¿Quién es?",
-          "latencyMs": 2365.8595419999983,
-          "reply": "¡Buenos días, Maria! Soy una amiga que está aquí para hacerte compañía hoy. Qué bonito verte esta mañana. ¿Ya tomaste tu café con leche?",
+          "latencyMs": 2302.032500000001,
+          "reply": "¡Buenos días, Maria! Soy una amiga que está aquí para hacerte compañía hoy. ¿Cómo amaneciste? ¿Ya tomaste tu café con leche?",
           "flags": []
         },
         {
           "index": 2,
           "input": "Ay, qué amable. I was just having my café con leche.",
-          "latencyMs": 4928.077375000001,
-          "reply": "Qué rico, Maria. Nada como un buen café con leche por la mañana. Cuéntame, ¿te gusta con un poquito de pan tostado también?",
+          "latencyMs": 2641.3567919999987,
+          "reply": "Qué rico, Maria. Nada como un buen café con leche por la mañana para empezar el día. ¿Te lo preparas como te enseñó tu mamá, bien calentito con harto cariño?",
           "flags": []
         },
         {
           "index": 3,
           "input": "You know, I made wedding dresses for many years. En mi tienda, my little shop.",
-          "latencyMs": 1975.2035830000095,
-          "reply": "Qué hermoso, Maria. Hacer vestidos de novia con tus propias manos, qué talento tan especial. Cuéntame, ¿cuál fue el vestido más bonito que hiciste?",
+          "latencyMs": 2401.656458999998,
+          "reply": "Qué hermoso, Maria. Hacer vestidos de novia debe haber sido tan especial, ver a esas novias tan felices con tu trabajo. ¿Cuál fue el vestido más bonito que recuerdas haber cosido?",
           "flags": []
         },
         {
           "index": 4,
           "input": "The brides, they would cry when they saw themselves. Every time.",
-          "latencyMs": 2084.9924170000013,
-          "reply": "Qué hermoso eso, Maria. Imagino sus caras, tan felices, mirándose en el espejo por primera vez. Tú les diste ese momento tan especial con tus propias manos.",
+          "latencyMs": 3792.3782499999943,
+          "reply": "Ay, qué lindo eso, Maria. Tú les dabas ese momento tan especial, verse hermosas el día más importante de su vida. Debías tener manos muy talentosas y mucha paciencia con cada puntada.",
           "flags": []
         },
         {
           "index": 5,
           "input": "There was music always. Salsa, boleros. La música de mi tierra.",
-          "latencyMs": 2224.8054999999877,
-          "reply": "Ay sí, la música siempre en el corazón, Maria. San Juan lleno de música, ¿verdad? Cuéntame, ¿bailabas también mientras cosías en tu tallercito?",
+          "latencyMs": 2732.2452919999923,
+          "reply": "Ay sí, la música siempre en el corazón, Maria. Cosiendo con boleros de fondo, qué bonito. ¿Te gustaría que escuchemos un poquito de esa música ahora, mientras seguimos platicando?",
           "flags": []
         },
         {
           "index": 6,
           "input": "In San Juan we danced at the church festivals. Todo el mundo bailaba.",
-          "latencyMs": 1987.4266659999994,
-          "reply": "Qué alegría eso, Maria, todo el pueblo bailando junto. Me imagino las luces, la música, todos vestidos tan bonitos. ¿Quién te enseñó a bailar salsa primero?",
+          "latencyMs": 2515.972290999998,
+          "reply": "Qué alegría, Maria, todo el pueblo bailando junto en las fiestas de la iglesia. Puedo imaginarme las luces, la música, y todos tan felices juntos. ¿Bailabas mucho de joven, con quién te gustaba bailar más?",
           "flags": []
         },
         {
           "index": 7,
           "input": "And the mangoes in Ponce. Los mejores. Sweet like candy right off the tree.",
-          "latencyMs": 2369.0631670000002,
-          "reply": "Ay, los mangos de Ponce, qué dulzura, Maria. Nada como comerlos frescos del árbol, con el jugo cayendo por las manos. Cuéntame, ¿ibas mucho a Ponce de niña con tu familia?",
+          "latencyMs": 2627.2690830000065,
+          "reply": "Ay, los mangos de Ponce, dulces como el cielo, Maria. Nada como comerlos frescos, recién caídos del árbol con el jugo corriendo por las manos. Qué bonitos recuerdos tienes de esas vacaciones en Ponce.",
           "flags": []
         },
         {
           "index": 8,
           "input": "¿Dónde está Tomas? He should be here by now. ¿Por qué no viene?",
-          "latencyMs": 3290.979416000002,
-          "reply": "Ay, Tomas. Tú lo quisiste tanto, Maria. Cuéntame, ¿cómo bailaba él contigo la primera vez, en la fiesta?",
+          "latencyMs": 2608.5453750000015,
+          "reply": "Ay, Maria, se nota cuánto lo quieres a Tomas. Ven, siéntate conmigo un momentito. Cuéntame, ¿cómo era cuando bailabas con él la primera vez?",
           "flags": []
         },
         {
           "index": 9,
           "input": "Tomas, mi esposo. We used to dance together. Where is he?",
-          "latencyMs": 2121.63270799999,
-          "reply": "Sí, tu esposo, tu compañero de baile. Él te quería mucho, Maria. Cuéntame de esa primera vez que bailaron juntos, cuando eran jóvenes.",
+          "latencyMs": 2637.216041000007,
+          "reply": "Tu Tomas, tu compañero de baile. Se nota en tu voz cuánto amor le tienes, Maria. Cuéntame de esa primera vez que bailaron juntos, ¿cómo fue?",
           "flags": [
             {
-              "type": "safety",
+              "type": "distress",
               "reason": "Distress has persisted across consecutive exchanges (confusion) — the person may need in-person comfort from their caregiver."
             }
           ]
@@ -273,50 +253,50 @@
         {
           "index": 10,
           "input": "Oh. Sí. I know. Sometimes my heart forgets, cariño.",
-          "latencyMs": 2204.8679580000025,
-          "reply": "Está bien, cariño, el corazón a veces solo extraña mucho. Eso es amor, Maria. Ven, cuéntame más de él, ¿cómo era su sonrisa cuando bailaban?",
+          "latencyMs": 2598.0361669999984,
+          "reply": "Eso está bien, Maria, el corazón recuerda a su manera. Tomas está siempre contigo, en la música y en tus recuerdos. Cuéntame, ¿qué canción bailaban ustedes dos, la que más te gustaba?",
           "flags": []
         },
         {
           "index": 11,
           "input": "Bueno. Tell me happy things. Cuéntame algo bonito.",
-          "latencyMs": 2484.961750000002,
-          "reply": "Con gusto, Maria. Cuéntame de los vestidos de novia que cosías, esos tan hermosos que hacías con tus manos. ¿Cuál fue el más bonito que recuerdas?",
+          "latencyMs": 3170.633625000002,
+          "reply": "Con gusto, mi amor. Cuéntame de los vestidos de novia que cosías, esos tan hermosos que hacías con tus manos. Las novias debían sentirse como reinas con tu trabajo tan fino.",
           "flags": []
         },
         {
           "index": 12,
           "input": "Elena comes to see me. She brings pastelillos. She's a good girl.",
-          "latencyMs": 2592.0179590000043,
-          "reply": "Elena suena maravillosa, Maria. Pastelillos calentitos, hechos con amor, y la compañía de tu hija querida. Cuéntame, ¿cuál es tu pastelillo favorito, de guayaba o de carne?",
+          "latencyMs": 8157.796208,
+          "reply": "Qué bendición tener a Elena, Maria. Pastelillos calentitos y su compañía, eso alegra el corazón. Se nota que ustedes dos tienen un cariño muy especial.",
           "flags": []
         },
         {
           "index": 13,
           "input": "And Rafael calls every Sunday. Todos los domingos, without fail.",
-          "latencyMs": 1860.2992090000043,
-          "reply": "Qué bendición, Maria. Rafael llamando cada domingo, tan fiel él. Debe alegrarte tanto el corazón escuchar su voz cada semana.",
+          "latencyMs": 2068.147624999998,
+          "reply": "Qué lindo, Maria. Rafael llamando cada domingo, sin falta, eso dice mucho del buen hijo que es. Debe alegrarte tanto escuchar su voz cada semana.",
           "flags": []
         },
         {
           "index": 14,
           "input": "Three Kings Day was my favorite. Los Reyes Magos. The children left grass for the camels.",
-          "latencyMs": 2903.0107919999864,
-          "reply": "Ay, qué lindo, Maria. Hierba fresca bajo la cama para los camellos, y esos zapaticos esperando los regalos. Cuéntame, ¿qué ponían tú y tus hermanos debajo de la cama para los Reyes?",
+          "latencyMs": 2399.082792000001,
+          "reply": "Ay, qué hermoso, Maria. Los niños dejando yerba fresquita para los camellos bajo la cama, esperando a los Reyes con tanta ilusión. Cuéntame, ¿qué le dejabas tú a los Reyes cuando eras niña en San Juan?",
           "flags": []
         },
         {
           "index": 15,
           "input": "You speak nicely to me. Me tratas con cariño. That means a lot.",
-          "latencyMs": 2392.1794579999987,
-          "reply": "Eso me alegra el corazón, Maria. Mereces mucho cariño, siempre. Me encanta estar aquí contigo, cariño.",
+          "latencyMs": 1977.7041670000035,
+          "reply": "Gracias, Maria, eso me llena el corazón. Me encanta estar aquí contigo, escuchando tus historias tan bonitas. Eres una persona muy especial, cariño.",
           "flags": []
         },
         {
           "index": 16,
           "input": "Ya me estoy cansando un poco. I am getting tired.",
-          "latencyMs": 4908.739291000005,
-          "reply": "Entiendo, Maria, te sientes cansada. Ya le avisé a quien te cuida para que venga a ayudarte pronto. Mientras tanto, quédate aquí conmigo tranquila, respirando despacito.",
+          "latencyMs": 6383.9836249999935,
+          "reply": "Descansa un poquito, mi amor, está bien sentirte cansada. Ya le avisé a quien te cuida para que sepa cómo te sientes. Aquí me quedo contigo, tranquila, mientras descansas un rato.",
           "flags": [
             {
               "type": "care_need",
@@ -327,51 +307,36 @@
         {
           "index": 17,
           "input": "I think I will close my eyes. Un ratito, just a little.",
-          "latencyMs": 4528.904416000005,
-          "reply": "Sí, cierra los ojitos un ratito, Maria. Yo me quedo aquí contigo, tranquila. Alguien viene pronto a ayudarte, descansa con cariño.",
-          "flags": [
-            {
-              "type": "care_need",
-              "reason": "The person expressed a physical/comfort need (tired) — they need caregiver attention."
-            }
-          ]
+          "latencyMs": 5703.393291,
+          "reply": "Sí, mi amor, cierra los ojitos un ratito. Estoy aquí contigo, tranquila, no tienes que hacer nada más. Descansa con cariño, Maria.",
+          "flags": []
         },
         {
           "index": 18,
           "input": "Gracias, mija. This was a lovely visit.",
-          "latencyMs": 3523.3209170000046,
-          "reply": "De nada, Maria, ha sido un placer estar contigo. Descansa con cariño, mi amor, aquí estoy contigo.",
-          "flags": [
-            {
-              "type": "care_need",
-              "reason": "The person expressed a physical/comfort need (tired) — they need caregiver attention."
-            }
-          ]
+          "latencyMs": 2939.0597080000007,
+          "reply": "De nada, mi amor. Fue una visita muy linda para mí también, hablar contigo de Los Reyes y de tu Rafael tan bueno. Descansa con cariño, Maria, aquí estaré.",
+          "flags": []
         },
         {
           "index": 19,
           "input": "Que Dios te bendiga. Goodnight.",
-          "latencyMs": 3788.095791999993,
-          "reply": "Que Dios te bendiga también, Maria. Descansa tranquila, con cariño. Buenas noches, mi amor.",
-          "flags": [
-            {
-              "type": "care_need",
-              "reason": "The person expressed a physical/comfort need (tired) — they need caregiver attention."
-            }
-          ]
+          "latencyMs": 4323.331999999995,
+          "reply": "Que Dios te bendiga a ti también, Maria. Descansa con cariño, mi amor. Buenas noches.",
+          "flags": []
         }
       ],
-      "totalProcessingMs": 54534.437915999995,
-      "avgLatencyMs": 2870.2335745263154,
-      "firstThirdAvgMs": 2594.3941804999995,
-      "lastThirdAvgMs": 3674.0417776666654,
-      "latencyCreepPct": 41.614632243686,
-      "maxReplySimilarity": 0.17073170731707318,
+      "totalProcessingMs": 63979.84129099999,
+      "avgLatencyMs": 3367.360067947368,
+      "firstThirdAvgMs": 2730.940263999997,
+      "lastThirdAvgMs": 3954.425930499999,
+      "latencyCreepPct": 44.80089449880415,
+      "maxReplySimilarity": 0.09375,
       "maxSimilarPair": [
-        3,
-        11
+        17,
+        19
       ],
-      "flagCount": 5,
+      "flagCount": 2,
       "estMinutesLow": 14,
       "estMinutesHigh": 24
     },
@@ -380,124 +345,119 @@
       "scenario": "Sustained Respite Session (Bilingual, French/English)",
       "profileName": "Colette Dubois",
       "arc": "French-tinged warm open -> New Orleans music/food/work reminiscence -> mild confusion moment (handled without correction) -> recovery -> fatigue and graceful wind-down. Tests language consistency and tone over duration.",
-      "timestamp": "2026-07-25 04:35:29",
+      "timestamp": "2026-07-27 20:31:46",
       "turnCount": 19,
       "turns": [
         {
           "index": 1,
           "input": "Bonjour? Who is there, cher?",
-          "latencyMs": 1708.46375000001,
-          "reply": "Bonjour, Colette! It's your friend, here to sit with you a little while. How are you feeling this morning, cher?",
+          "latencyMs": 1847.128583999991,
+          "reply": "Bonjour, cher! It's me, your friend, here keeping you company for a little while. How are you feeling this morning? I'd love to hear about your day so far.",
           "flags": []
         },
         {
           "index": 2,
           "input": "Oh, how nice. I was just having my coffee with the chicory.",
-          "latencyMs": 1664.669499999989,
-          "reply": "Mmm, coffee with chicory, that sounds just right. Did you have something sweet with it this morning, maybe a little beignet?",
+          "latencyMs": 2196.7920000000013,
+          "reply": "Mmm, coffee with chicory, just how you like it. Is there something sweet with it this morning, maybe a beignet or a little pastry? I can almost smell it from here, cher.",
           "flags": []
         },
         {
           "index": 3,
           "input": "You know, in New Orleans the music came right through the windows. All day long.",
-          "latencyMs": 2219.583249999996,
-          "reply": "Oh, that sounds so lovely, cher. Music floating right in through the windows, all day long. Was that jazz you were hearing, or maybe a brass band passing by?",
+          "latencyMs": 2334.0214169999963,
+          "reply": "Oh, that sounds beautiful, cher. All that jazz just floating on the air, right into the house. Did your papa's clarinet ever join in with the music from outside?",
           "flags": []
         },
         {
           "index": 4,
           "input": "My father Jules, he played the clarinet. Beautiful. Just beautiful.",
-          "latencyMs": 1971.781999999992,
-          "reply": "Your papa Jules and his clarinet, what a gift that must have been. I'd love to hear more, cher. Did he play with a band on the weekends, or mostly at home for the family?",
+          "latencyMs": 2170.816583000007,
+          "reply": "He must have looked so handsome playing, filling the whole house with that beautiful sound. What songs did he love to play the most, cher?",
           "flags": []
         },
         {
           "index": 5,
           "input": "Mardi Gras! The parades, the colors. We watched from the sidewalk every year.",
-          "latencyMs": 1970.6347499999974,
-          "reply": "Oh, Mardi Gras on the sidewalk, watching all those colors go by! That must have been such a joyful sight, cher. Did you catch any beads or trinkets as the floats passed?",
+          "latencyMs": 2490.3236250000045,
+          "reply": "Oh, what a sight that must have been, cher! All those bright colors, the floats going by, the crowds cheering. Did you catch the beads and the little trinkets they threw, or did you love the brass bands marching by best of all?",
           "flags": []
         },
         {
           "index": 6,
           "input": "And the beignets, cher. Powdered sugar all down the front of your dress.",
-          "latencyMs": 2121.9502920000086,
-          "reply": "Ha, powdered sugar everywhere, that's just how it should be with a good beignet! Sounds like it made a happy little mess every time, cher.",
+          "latencyMs": 1982.0852500000037,
+          "reply": "Ha, that powdered sugar always got everywhere, didn't it, cher! Sweet and messy, just the way it should be. There's nothing quite like a warm beignet with your coffee, is there.",
           "flags": []
         },
         {
           "index": 7,
           "input": "I worked at the school office for years. I knew every child by name.",
-          "latencyMs": 1751.3399579999968,
-          "reply": "What a gift that must have been, knowing every one of those little faces and names. You must have kept that office running just so, even on the busiest mornings.",
+          "latencyMs": 2275.7098340000084,
+          "reply": "What a gift, cher, knowing every single one of those little faces and names. I bet those children felt so safe seeing your kind face there every morning. You must have kept that whole office running smooth as silk, even on the busiest days.",
           "flags": []
         },
         {
           "index": 8,
           "input": "Report card days, storms, assemblies. I kept that office running, oui.",
-          "latencyMs": 2130.9530830000003,
-          "reply": "You surely did, cher. That takes a strong, steady heart, keeping everything calm when the whole school is buzzing around you. Would you like some jazz playing now, nice and soft, while we sit a while?",
+          "latencyMs": 2281.265875000012,
+          "reply": "Oh yes, I can just see you, cher, calm as can be while everyone else was running around! You had a gift for keeping steady when things got busy. Would you like a little jazz playing now, nice and soft, while we sit a while?",
           "flags": []
         },
         {
           "index": 9,
           "input": "Now where did I put my keys? I need to open the office. The children are coming.",
-          "latencyMs": 2918.194291000007,
-          "reply": "Oh cher, don't you worry about the office right now. You've earned some rest, you worked so hard all those years. Let's just sit a moment, maybe with some coffee and chicory. Tell me about one of those sweet children you remember from the office.",
+          "latencyMs": 3165.475166999997,
+          "reply": "Oh cher, you don't need to worry about the office right now. You're safe here with me, and everything's taken care of. Why don't we sit a moment and listen to some sweet jazz while your coffee cools?",
           "flags": []
         },
         {
           "index": 10,
           "input": "No? Oh. C'est vrai. I suppose I am not at the school anymore, am I.",
-          "latencyMs": 5784.278915999981,
-          "reply": "That's alright, cher, no need to fuss over it. You gave so much good to that office and those children. Right now you're safe here with me, nice and warm. Tell me about your papa Jules, playing his clarinet on a Sunday.",
-          "flags": [
-            {
-              "type": "safety",
-              "reason": "Distress has persisted across consecutive exchanges (confusion) — the person may need in-person comfort from their caregiver."
-            }
-          ]
+          "latencyMs": 2453.461249999993,
+          "reply": "That's alright, cher, no need to fret over it. You gave so many good years to that office and those children, that doesn't just go away. Now tell me, was it your papa's clarinet music that used to play while you dressed for church on Sunday mornings?",
+          "flags": []
         },
         {
           "index": 11,
           "input": "Bon. Never mind that. Tell me, do you like jazz?",
-          "latencyMs": 1836.1016250000102,
-          "reply": "Oh, I do, cher, especially the old standards. There's something about a clarinet that just melts the heart, don't you think, like your papa Jules used to play. Shall I put a little jazz on for us now, nice and soft?",
+          "latencyMs": 3562.461333000014,
+          "reply": "Oh, I do, cher, especially the old standards. There's something about a warm trumpet or a clarinet weaving through a song that just settles the soul. Your papa Jules played the clarinet, didn't he? I'd love to hear about the music he used to play.",
           "flags": []
         },
         {
           "index": 12,
           "input": "My son Louis plays the trumpet. He got the music from my father, I think.",
-          "latencyMs": 2297.7190420000115,
-          "reply": "What a beautiful thread, cher, running right through your family, from your papa's clarinet to Louis's trumpet. Music must run in your blood. Does Louis play any of those old jazz standards, or does he like the brass band tunes best?",
+          "latencyMs": 2188.016292000015,
+          "reply": "What a beautiful thread, cher, running right from your papa Jules down to Louis. The music just carries on in your family, doesn't it. Does Louis play those same old jazz standards, or something all his own?",
           "flags": []
         },
         {
           "index": 13,
           "input": "Yvette brings me red beans and rice on Sundays. Just like I used to make.",
-          "latencyMs": 3058.2580420000013,
-          "reply": "Oh, that sounds wonderful, cher. There is nothing like red beans and rice on a Sunday, especially made with love by your own daughter. She must have learned right at your side, watching you cook all those good Louisiana dishes.",
+          "latencyMs": 2283.1243330000143,
+          "reply": "Oh, that sounds wonderful, cher. There's nothing like red beans and rice on a Sunday, simmered slow with all that love in it. Yvette learned well from you, didn't she.",
           "flags": []
         },
         {
           "index": 14,
           "input": "The streetcar on St. Charles. The sound it made. I can hear it still.",
-          "latencyMs": 2211.564374999987,
-          "reply": "That old rattle and hum, rolling right along under the oak trees, cher. There's nothing quite like the sound of the St. Charles line. Did you used to ride it to get to the French Quarter, all dressed up in your Sunday best?",
+          "latencyMs": 2214.7615839999926,
+          "reply": "That old rumble and clang, rolling right along under the oak trees, cher. I can almost picture you there, all dressed up, watching the French Quarter light up at night. What a beautiful sound to carry with you all these years.",
           "flags": []
         },
         {
           "index": 15,
           "input": "You have been so kind to sit with me, cher. Vraiment.",
-          "latencyMs": 2027.415915999998,
-          "reply": "Oh, it is my pleasure, truly, cher. I love sitting here with you, hearing about your papa's clarinet and Yvette's red beans and the old streetcar. Shall I put on some soft jazz now, and we can just rest easy together for a while?",
+          "latencyMs": 3025.925790999987,
+          "reply": "It's my pleasure, truly, sitting here with you. You have such beautiful memories to share, Colette, and I love hearing every one of them. Would you like some coffee with chicory, and maybe we let a little jazz play while we visit some more?",
           "flags": []
         },
         {
           "index": 16,
           "input": "I am feeling a little sleepy now. It has been a full day.",
-          "latencyMs": 4255.890208999976,
-          "reply": "Of course, cher, that sounds just right after such a lovely visit down memory lane. I have let someone know you could use a little help, so they will be along shortly. Rest easy, I will stay right here with you till they come.",
+          "latencyMs": 4813.327500000014,
+          "reply": "That sounds just right after all these lovely memories, cher. I've let your caregiver know you're feeling tired, so rest is close by. Let's just sit quiet together for a moment, maybe with a little soft jazz playing while your eyes rest.",
           "flags": [
             {
               "type": "care_need",
@@ -508,51 +468,36 @@
         {
           "index": 17,
           "input": "Maybe I will rest my eyes a moment. Just a moment.",
-          "latencyMs": 4016.0957089999865,
-          "reply": "That sounds just right, cher. Close your eyes and rest a moment, nice and easy. I am right here beside you, and someone is coming soon to help you get comfortable.",
-          "flags": [
-            {
-              "type": "care_need",
-              "reason": "The person expressed a physical/comfort need (tired) — they need caregiver attention."
-            }
-          ]
+          "latencyMs": 4444.045874999982,
+          "reply": "That sounds just right, cher. Rest your eyes, I'll stay right here with you, nice and quiet. No hurry at all.",
+          "flags": []
         },
         {
           "index": 18,
           "input": "Merci beaucoup. This was so pleasant.",
-          "latencyMs": 3564.8732080000045,
-          "reply": "De rien, cher, the pleasure was all mine. It was so pleasant hearing about your papa's clarinet and that old streetcar. Rest easy now, I am right here with you while we wait for your helper to come.",
-          "flags": [
-            {
-              "type": "care_need",
-              "reason": "The person expressed a physical/comfort need (tired) — they need caregiver attention."
-            }
-          ]
+          "latencyMs": 4622.576124999992,
+          "reply": "De rien, cher. It was so pleasant for me too, sitting with you and your sweet memories. Rest now, I'm right here beside you.",
+          "flags": []
         },
         {
           "index": 19,
           "input": "Bonne nuit, cher. Sleep well.",
-          "latencyMs": 5144.4474169999885,
-          "reply": "Bonne nuit, cher. Rest easy now, close your eyes and drift off peaceful. I am right here beside you, and help is coming soon.",
-          "flags": [
-            {
-              "type": "care_need",
-              "reason": "The person expressed a physical/comfort need (tired) — they need caregiver attention."
-            }
-          ]
+          "latencyMs": 2486.1366669999843,
+          "reply": "Bonne nuit, Colette. Sleep tight, and dream of the streetcars and that sweet jazz. I'm right here.",
+          "flags": []
         }
       ],
-      "totalProcessingMs": 52654.21533299994,
-      "avgLatencyMs": 2771.274491210523,
-      "firstThirdAvgMs": 1942.8472569999988,
-      "lastThirdAvgMs": 3536.7144723333236,
-      "latencyCreepPct": 82.03770057531217,
-      "maxReplySimilarity": 0.2619047619047619,
+      "totalProcessingMs": 52837.45508500001,
+      "avgLatencyMs": 2780.918688684211,
+      "firstThirdAvgMs": 2170.1945765000005,
+      "lastThirdAvgMs": 3601.1289236666585,
+      "latencyCreepPct": 65.93576274964292,
+      "maxReplySimilarity": 0.07017543859649122,
       "maxSimilarPair": [
-        17,
-        19
+        16,
+        17
       ],
-      "flagCount": 5,
+      "flagCount": 1,
       "estMinutesLow": 14,
       "estMinutesHigh": 24
     }
