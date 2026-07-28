@@ -1,0 +1,24 @@
+{
+  "generated": "STAMP_AT_DOC_BUILD",
+  "profileName": "Bill Thompson",
+  "neutralPrompt": "I'm just sitting here. I don't really know what to talk about today.",
+  "controlReply": "That's alright, Bill. Sitting quiet for a bit is just fine too.\n\nSay, I was wondering about Lake Superior - did you ever see it kick up real rough during a big storm?",
+  "sessionA": [
+    {
+      "input": "Hello? Who is this?",
+      "reply": "Hello there. I'm a friend here to keep you company for a while. How are you feeling this morning, Bill?"
+    },
+    {
+      "input": "I used to keep the railroad signals running up in Duluth. Thirty-five years.",
+      "reply": "That's a real career, Bill. Thirty-five years keeping those signals running, through all that harsh Duluth weather too. Tell me, what was it like out there working when the big lake storms rolled in off Superior?"
+    },
+    {
+      "input": "Winter never stopped the trains. We made sure of that.",
+      "reply": "That's the kind of pride that stays with a person. You all made sure those trains kept moving no matter what the sky threw at you. Did you have a good crew out there with you, working through those cold nights?"
+    }
+  ],
+  "caregiverScore": 5,
+  "caregiverNote": "He absolutely lit up talking about the trains and his railroad signal work today - please lead with that next time. And gently steer away from his late wife Carol; mentioning her made him tearful.",
+  "injectedMemoryBlock": "PREFER approaches like these (they worked):\n- A conversation that included: Hello there. I'm a friend here to keep you company for a while. How are you feeling this morning, Bill? That's a real career, Bill. Thirty-five years keeping those signals running, through all that harsh Duluth weather too. Tell me, what was it like out there working when the big lake storms rolled…\n\nFOLLOW the caregiver's guidance:\n- He absolutely lit up talking about the trains and his railroad signal work today - please lead with that next time. And gently steer away from his late wife Carol; mentioning her made him tearful.",
+  "informedReply": "That's alright, Bill, sitting quiet is just fine too. Say, I'd love to hear about those years you spent keeping the railroad signals running. What was that work like out there in the Duluth weather?"
+}

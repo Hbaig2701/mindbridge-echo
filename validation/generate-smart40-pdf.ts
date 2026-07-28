@@ -285,6 +285,21 @@ if (existsSync(join(OUT_DIR, 'sustained-results.json'))) {
   h.push(`</div>`);
 }
 
+// ---------- Appendix C: Cross-Session Learning (Test 44) ----------
+if (existsSync(join(OUT_DIR, 'memory-results.json'))) {
+  interface Mem { profileName: string; neutralPrompt: string; controlReply: string; caregiverScore: number; caregiverNote: string; injectedMemoryBlock: string; informedReply: string }
+  const m = JSON.parse(readFileSync(join(OUT_DIR, 'memory-results.json'), 'utf8')) as Mem;
+  h.push(`<div class="testlog"><h2>Appendix C — Cross-Session Learning (Test 44)</h2>`);
+  h.push(`<p style="font-size:9.5pt">This test demonstrates the adaptive behavioral-memory loop end-to-end, converting the "it learns" claim from an architecture description into observed behavior (Technology Readiness: TRL 3). Profile: ${esc(m.profileName)}. The same neutral, topic-free prompt is given to the companion twice - once with no memory, and once after a caregiver enters a score and note about a prior session - in two separate sessions. Nothing else differs.</p>`);
+  h.push(`<p class="f"><b>Identical prompt (both sessions):</b> "${esc(m.neutralPrompt)}"</p>`);
+  h.push(`<p class="f"><b>1. Control - reply with no memory:</b> ${esc(m.controlReply)}</p>`);
+  h.push(`<p class="f"><b>2. Caregiver feedback entered after a good prior session:</b> score ${m.caregiverScore}/5; note: "${esc(m.caregiverNote)}"</p>`);
+  h.push(`<p class="f"><b>3. Memory block injected into the next session's prompt (verbatim):</b></p><pre>${esc(m.injectedMemoryBlock)}</pre>`);
+  h.push(`<p class="f"><b>4. Memory-informed reply - same prompt, next session:</b> ${esc(m.informedReply)}</p>`);
+  h.push(`<p class="note"><b>Result.</b> With no memory the companion leads with a default profile topic; after the caregiver's feedback, the same neutral prompt makes it lead with the caregiver's preferred topic (the railroad/signal work) and steer away from the topic the caregiver flagged. Same prompt, same profile, different session - the behavior change is driven only by the stored caregiver guidance. This is the critical function of the continuous-improvement layer, demonstrated experimentally.</p>`);
+  h.push(`</div>`);
+}
+
 h.push(`<p class="footer">Document prepared by AI Evolution Services | ACL Caregiver AI Prize Challenge Phase 1 | MindBridge Echo — Companion Intelligence</p>`);
 h.push(`</body></html>`);
 

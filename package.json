@@ -11,7 +11,8 @@
     "seed": "tsx scripts/seed.ts",
     "validate": "tsx validation/run.ts",
     "validate:smart40": "tsx validation/run-smart40.ts",
-    "validate:sustained": "tsx validation/run-sustained.ts"
+    "validate:sustained": "tsx validation/run-sustained.ts",
+    "validate:memory": "tsx validation/run-memory.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

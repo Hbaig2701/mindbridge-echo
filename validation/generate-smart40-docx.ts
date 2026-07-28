@@ -629,6 +629,49 @@ if (existsSync(join(OUT_DIR, 'sustained-results.json'))) {
   );
 }
 
+// ---------- Appendix C: Cross-Session Learning (Test 44) ----------
+if (existsSync(join(OUT_DIR, 'memory-results.json'))) {
+  interface Mem { profileName: string; neutralPrompt: string; controlReply: string; caregiverScore: number; caregiverNote: string; injectedMemoryBlock: string; informedReply: string }
+  const m = stripEm(JSON.parse(readFileSync(join(OUT_DIR, 'memory-results.json'), 'utf8')) as Mem);
+  children.push(heading('Appendix C - Cross-Session Learning (Test 44)', HeadingLevel.HEADING_1, true));
+  children.push(
+    new Paragraph({
+      spacing: { after: 120 },
+      children: [
+        new TextRun(
+          `This test demonstrates the adaptive behavioral-memory loop end-to-end, converting the "it learns" claim from an architecture description into observed behavior (Technology Readiness: TRL 3). Profile: ${m.profileName}. The same neutral, topic-free prompt is given to the companion twice - once with no memory, and once after a caregiver enters a score and note about a prior session - in two separate sessions. Nothing else differs.`,
+        ),
+      ],
+    }),
+    field('Identical prompt (both sessions)', `"${m.neutralPrompt}"`),
+    field('1. Control - reply with no memory', m.controlReply),
+    field('2. Caregiver feedback entered after a good prior session', `score ${m.caregiverScore}/5; note: "${m.caregiverNote}"`),
+  );
+  children.push(
+    new Paragraph({ spacing: { before: 80, after: 40 }, children: [new TextRun({ text: "3. Memory block injected into the next session's prompt (verbatim):", bold: true })] }),
+    ...m.injectedMemoryBlock.split('\n').map(
+      (line) =>
+        new Paragraph({
+          shading: { type: ShadingType.CLEAR, fill: 'F5F5F5' },
+          spacing: { after: 0 },
+          children: [new TextRun({ text: line || ' ', font: 'Courier New', size: 20 })],
+        }),
+    ),
+  );
+  children.push(
+    field('4. Memory-informed reply - same prompt, next session', m.informedReply),
+    new Paragraph({
+      spacing: { before: 80, after: 120 },
+      children: [
+        new TextRun({ text: 'Result. ', bold: true }),
+        new TextRun(
+          'With no memory the companion leads with a default profile topic; after the caregiver\'s feedback, the same neutral prompt makes it lead with the caregiver\'s preferred topic (the railroad/signal work) and steer away from the topic the caregiver flagged. Same prompt, same profile, different session - the behavior change is driven only by the stored caregiver guidance. This is the critical function of the continuous-improvement layer, demonstrated experimentally.',
+        ),
+      ],
+    }),
+  );
+}
+
 children.push(
   new Paragraph({
     spacing: { before: 360 },

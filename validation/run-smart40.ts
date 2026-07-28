@@ -492,6 +492,13 @@ async function ensureProfiles(db: SupabaseClient, userId: string): Promise<Map<s
   }
 
   const ids = SMART40_PROFILES.map((p) => p.id);
+
+  // Clear any behavioral-memory entries so every profile starts from its static
+  // pre-authored state — this is what makes each of the 40 tests a genuinely fresh
+  // session, and keeps the cross-session-learning demo (Test 44) from contaminating
+  // the 40-test baseline.
+  await db.from('memory_entries').delete().in('profile_id', ids);
+
   const { data: rows, error } = await db.from('profiles').select('*').in('id', ids);
   if (error || !rows) throw new Error(`Failed to load profiles: ${error?.message}`);
   const map = new Map<string, Profile>();
