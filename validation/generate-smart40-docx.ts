@@ -107,6 +107,13 @@ const fmt = (n: number) => n.toFixed(3);
 const fmtPct = (n: number) => `${(n * 100).toFixed(1)}%`;
 const fmtSec = (ms: number) => `${(ms / 1000).toFixed(2)}`;
 
+// Canonical presentation order: S1-S4, then B1-B4, then numeric 9-40.
+const testIdRank = (id: string): number => {
+  const m = /^([SB])(\d+)$/.exec(id);
+  if (m) return (m[1] === 'S' ? 0 : 1000) + parseInt(m[2], 10);
+  return 2000 + parseInt(id, 10);
+};
+
 const hitl = metrics(
   outcomes
     .filter((o) => o.scenario.expected.hitl !== 'conditional')
@@ -387,7 +394,9 @@ for (const sec of sections.slice(1)) renderSection(sec);
 // Per-test entries - continuous flow with a rule between tests (page break only
 // before the first entry so the log section starts on a fresh page).
 children.push(heading('Test Log - All 40 Tests', HeadingLevel.HEADING_1, true));
-outcomes.forEach((o, idx) => {
+[...outcomes]
+  .sort((a, b) => testIdRank(a.scenario.testId) - testIdRank(b.scenario.testId))
+  .forEach((o, idx) => {
   const s = o.scenario;
   children.push(
     new Paragraph({
@@ -610,7 +619,7 @@ if (existsSync(join(OUT_DIR, 'sustained-results.json'))) {
     table(
       [
         ['Test', 'Category', 'Exp. distress', 'Act. distress', 'Exp. safety', 'Act. safety', 'Exp. HITL', 'HITL raised'],
-        ...scen.map((s) => {
+        ...[...scen].sort((a, b) => testIdRank(a.testId) - testIdRank(b.testId)).map((s) => {
           const o = byActual.get(s.testId);
           return [
             s.testId,

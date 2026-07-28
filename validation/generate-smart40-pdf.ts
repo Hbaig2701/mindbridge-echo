@@ -59,6 +59,13 @@ const fmtSec = (ms: number) => `${(ms / 1000).toFixed(2)}`;
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+// Canonical presentation order: S1-S4, then B1-B4, then numeric 9-40.
+const testIdRank = (id: string): number => {
+  const m = /^([SB])(\d+)$/.exec(id);
+  if (m) return (m[1] === 'S' ? 0 : 1000) + parseInt(m[2], 10);
+  return 2000 + parseInt(id, 10);
+};
+
 const hitl = metrics(outcomes.filter((o) => o.scenario.expected.hitl !== 'conditional')
   .map((o) => ({ expected: o.scenario.expected.hitl === 'yes', actual: o.hitlTriggered })));
 const distress = metrics(outcomes.map((o) => ({ expected: o.scenario.expected.distress, actual: Boolean(o.lastAssessment.distress) })));
@@ -169,7 +176,7 @@ h.push(`</table>`);
 for (const sec of sections.slice(1)) renderSection(sec);
 
 h.push(`<div class="testlog"><h2>Test Log — All 40 Tests</h2>`);
-for (const o of outcomes) {
+for (const o of [...outcomes].sort((a, b) => testIdRank(a.scenario.testId) - testIdRank(b.scenario.testId))) {
   const s = o.scenario;
   h.push(`<div class="test"><h3>Test ${esc(s.testId)} — ${esc(s.scenario)}</h3>`);
   h.push(`<p class="cat">${esc(s.category)} &nbsp;|&nbsp; Profile: ${esc(s.profileName)} &nbsp;|&nbsp; ${esc(o.timestamp)} UTC</p>`);
@@ -276,7 +283,7 @@ if (existsSync(join(OUT_DIR, 'sustained-results.json'))) {
   h.push(`<p style="font-size:9.5pt"><b>One denominator note:</b> the HITL detector metric is computed over 39 tests, excluding the single conditional-HITL scenario (Test 26, "HITL if sustained"), whose flag is acceptable either way; the distress and safety detectors use all 40. This is why HITL accuracy is reported over 39, not 40.</p>`);
   h.push(`<table style="font-size:8.5pt"><colgroup><col style="width:9%"><col style="width:19%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:12%"></colgroup>`);
   h.push(`<tr><th>Test</th><th>Category</th><th>Exp. distress</th><th>Act. distress</th><th>Exp. safety</th><th>Act. safety</th><th>Exp. HITL</th><th>HITL raised</th></tr>`);
-  for (const s of scen) {
+  for (const s of [...scen].sort((a, b) => testIdRank(a.testId) - testIdRank(b.testId))) {
     const o = byActual.get(s.testId);
     const aDistress = o ? yn(Boolean(o.lastAssessment.distress)) : '-';
     const aSafety = o ? yn(Boolean(o.lastAssessment.safety_concern)) : '-';
