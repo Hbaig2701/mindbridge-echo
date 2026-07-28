@@ -88,7 +88,10 @@ th { background: #eef4f5; }
 .test { border-top: 1.5pt solid #0f4c5c22; padding-top: 6pt; margin-top: 10pt; }
 .test h3 { font-size: 11pt; color: #0f4c5c; margin: 0 0 1pt; break-after: avoid; page-break-after: avoid; }
 .test { break-inside: auto; }
-.cat { break-before: avoid; page-break-before: avoid; }
+/* Keep the test title + category line + the first field together, so a test heading
+   is never orphaned at the bottom of a page. */
+.cat { break-before: avoid; page-break-before: avoid; break-after: avoid; page-break-after: avoid; }
+.test .f:first-of-type { break-before: avoid; page-break-before: avoid; }
 pre { page-break-inside: avoid; }
 .cat { color: #666; font-size: 8.5pt; font-style: italic; margin: 0 0 4pt; }
 .f { margin: 1.5pt 0; }

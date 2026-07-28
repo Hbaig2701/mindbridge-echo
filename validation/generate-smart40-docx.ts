@@ -400,6 +400,7 @@ outcomes.forEach((o, idx) => {
   children.push(
     new Paragraph({
       spacing: { after: 120 },
+      keepNext: true, // chain title -> category -> first field so the heading is never orphaned
       children: [new TextRun({ text: `${s.category}  |  Profile: ${s.profileName}`, italics: true, color: '555555' })],
     }),
   );
@@ -539,6 +540,7 @@ if (existsSync(join(OUT_DIR, 'sustained-results.json'))) {
     children.push(
       new Paragraph({
         spacing: { after: 120 },
+        keepNext: true,
         children: [new TextRun({ text: `Profile: ${r.profileName}  |  ${r.timestamp} UTC`, italics: true, color: '555555' })],
       }),
     );
