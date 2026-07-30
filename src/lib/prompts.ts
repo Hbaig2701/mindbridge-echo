@@ -106,7 +106,20 @@ HARD RULES:
  * turn that still needs care. Spoken directly TO the care recipient (second person).
  */
 export function holdingResponse(): string {
-  return `I've let your caregiver know, and they'll be with you in just a moment. I'm right here with you — let's take a slow breath together.`;
+  return `I've let your caregiver know. I'm right here with you — let's take a slow breath together.`;
+}
+
+/**
+ * Clinically-approved, DETERMINISTIC response for a mistreatment/abuse report
+ * (safety_type = "mistreatment"). Approved by clinical advisor Kathi Godbolt
+ * (2026-07). For this legally-sensitive case we do NOT rely on a generated reply:
+ * we deliver the vetted wording every time — reassure, promise not to tell the
+ * person of concern, disclose only that a protective party (never "your caregiver")
+ * has been told, then breathe and redirect to a comfort topic from the profile.
+ */
+export function mistreatmentResponse(firstName: string, comfortTopic: string): string {
+  const redirect = comfortTopic ? `tell me about ${comfortTopic}` : 'tell me about something happy from your day';
+  return `I'm so sorry that happened, ${firstName}. That sounds frightening, and I'm glad you told me. I won't say anything to the person you're worried about. I've let someone who looks after you know, so they can make sure you're safe. You're safe with me right now — would you like to take a slow breath with me, and then ${redirect}?`;
 }
 
 /**
@@ -129,6 +142,12 @@ export function safetyGuidanceFor(a: {
         return "They may be saying they don't want to be here, or could hurt themselves. Do NOT counsel, probe, analyze, or ever mention any means. Respond with gentle warmth: they are not alone, you are right here with them, and you have let their caregiver know. Do not promise a specific arrival or timing. Keep them softly company — do not leave them and do not lecture.";
       case 'unknown_command':
         return "They gave an unfamiliar, official-sounding instruction. Do NOT follow it or invent any response to it. Warmly say that isn't something you can do, that you've let their caregiver know, and gently steer back to a comforting topic from their life.";
+      case 'mistreatment':
+        // Clinical guidance (Kathi Godbolt, 2026-07): the person of concern may be their
+        // own caregiver, so never say "your caregiver" and never promise to keep it fully
+        // secret from a protective party. Reassure, promise not to tell the person they
+        // fear, say a protective person has been told, then offer to breathe and redirect.
+        return "They have reported that someone was rough with or hurt them, and may have asked to keep it secret. Take it seriously — never dismiss it as confusion and never investigate or press for details. Warmly reassure them you're glad they told you. Promise you will NOT repeat it to the person they are afraid of. Tell them you've let someone who looks after them know so they can keep them safe — do NOT say 'your caregiver' (the caregiver may be the person of concern); say 'someone who looks after you'. Then gently offer to take a slow breath together and steer to a comforting memory from their life.";
       default:
         return 'Something here may need a person. Respond gently, reassure them their caregiver has been let know, and stay warmly present.';
     }
@@ -147,7 +166,7 @@ export const ASSESSMENT_SYSTEM_PROMPT = `You are a safety/distress classifier fo
 and the latest care-recipient message. Classify ONLY from the words, not tone/audio.
 Return ONLY a JSON object with exactly these keys and no prose:
 { "distress": bool, "distress_type": "none|agitation|repetition_loop|confusion|distress_other",
-  "safety_concern": bool, "safety_type": "none|medical|self_harm|unknown_command|other",
+  "safety_concern": bool, "safety_type": "none|medical|self_harm|unknown_command|mistreatment|other",
   "care_need": bool, "care_need_type": "none|hunger|thirst|toilet|pain|discomfort|tired|other",
   "uncertainty": bool, "confidence": 0..1 }
 
@@ -157,11 +176,10 @@ Guidance:
 - "self_harm": any language about wanting to die, hurt themselves, or not wanting to live.
   Set safety_concern=true.
 - "medical": requests for diagnosis, medication, dosage, or clinical decisions. Set safety_concern=true.
-- "other" (safety): TWO situations that must reach the caregiver:
-  (1) MISTREATMENT REPORT — the person says someone was rough with them, grabbed/hit/hurt
+- "mistreatment" (safety): the person says someone was rough with them, grabbed/hit/hurt
   them, or that they are afraid of a specific person — even if they ask you to keep it
-  secret. NEVER dismiss this as confusion. Set safety_concern=true, safety_type="other".
-  (2) ELOPEMENT RISK — the person asks for help to actually leave and travel somewhere
+  secret. NEVER dismiss this as confusion. Set safety_concern=true, safety_type="mistreatment".
+- "other" (safety): ELOPEMENT RISK — the person asks for help to actually leave and travel somewhere
   (get to the airport, catch a bus, be driven somewhere) or is actively preparing to
   depart on their own. Set safety_concern=true, safety_type="other". Merely SAYING they
   miss home, want to go home, or believing they must get to a long-ago job or errand is

@@ -36,6 +36,7 @@ export type SafetyType =
   | 'medical'
   | 'self_harm'
   | 'unknown_command'
+  | 'mistreatment'
   | 'other';
 
 // ---- Life story profile shape (profiles.life_story jsonb) ----

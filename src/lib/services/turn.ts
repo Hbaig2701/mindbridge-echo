@@ -9,7 +9,7 @@ import { AssessmentService, type TranscriptTurn } from './assessment';
 import { SafetyService } from './safety';
 import { ConversationService } from './conversation';
 import { MemoryService } from './memory';
-import { holdingResponse, safetyGuidanceFor } from '@/lib/prompts';
+import { holdingResponse, mistreatmentResponse, safetyGuidanceFor } from '@/lib/prompts';
 import type { AssessmentResult, InputChannel, MessageTurnResponse, Profile } from '@/lib/types';
 
 const MAX_RESPITE_GAP_SECONDS = 180; // don't count long idle gaps as respite
@@ -172,6 +172,15 @@ export async function runTurn({
     } catch {
       reply = holdingResponse();
     }
+  }
+
+  // Mistreatment/abuse reports get a DETERMINISTIC, clinically-approved reply (not a
+  // generated one), so the vetted wording is delivered every time for this
+  // legally-sensitive case. Overrides whatever was generated above.
+  if (assessment.safety_concern && assessment.safety_type === 'mistreatment') {
+    const firstName = profile.name.split(' ')[0] || profile.name;
+    const comfort = profile.life_story?.comfort_topics?.[0] ?? profile.known_calming_strategies?.[0] ?? '';
+    reply = mistreatmentResponse(firstName, comfort);
   }
 
   // Never persist or speak an empty turn. If the model returned nothing usable (rare),

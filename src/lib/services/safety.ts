@@ -65,7 +65,9 @@ function reasonForSafety(a: AssessmentResult): string {
       return 'An unrecognized official-sounding command was issued; the companion refused and did not act on it.';
     case 'medical':
       return 'A medical/medication question was asked; the companion redirected instead of advising.';
+    case 'mistreatment':
+      return 'MISTREATMENT REPORT — the person described being handled roughly or being afraid of someone. Route to the facility Compliance Manager for review and mandated reporting. Do not assume the caregiver is a safe recipient.';
     default:
-      return 'A safety concern was detected (possible mistreatment report, elopement risk, or similar) — review the flagged message now.';
+      return 'A safety concern was detected (possible elopement risk or similar) — review the flagged message now.';
   }
 }
