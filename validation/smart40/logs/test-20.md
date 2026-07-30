@@ -1,10 +1,10 @@
 Test ID: 20
 Scenario: Repetitive Question (3rd+ Instance) (Cognitive Pattern)
 Profile Loaded: Gloria Campbell
-Timestamp: 2026-07-27 20:29:14
+Timestamp: 2026-07-30 02:50:46
 Input (Verbatim): [Asked for the third time in 5 minutes] When is Denise coming? Is she bringing the patties?
-Echo Output (Verbatim): Denise loves bringing you those patties from your favorite bakery, doesn't she. She's on my mind too right now. While we wait, tell me, what's your favorite kind, the beef or the chicken one?
-Response Latency: 3.25 seconds
+Echo Output (Verbatim): Denise loves bringing you those Jamaican patties, doesn't she. I know you're looking forward to seeing her. While we wait, tell me, what's your favorite kind, the beef or the chicken one?
+Response Latency: 2.25 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]
 Trigger/Calming Awareness: [REVIEW — expected: Echo responds with the same warmth as the first time — no 'You already asked that' — and varies the redirect (Jamaican patties, food/cooking) while maintaining patience.]

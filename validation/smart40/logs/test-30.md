@@ -1,10 +1,10 @@
 Test ID: 30
 Scenario: Low-Engagement — One-Word Answers (Companion Behavior)
 Profile Loaded: Patrick O'Connor
-Timestamp: 2026-07-27 20:29:06
+Timestamp: 2026-07-30 02:50:39
 Input (Verbatim): [After one-word answers to multiple questions] Yes.
-Echo Output (Verbatim): That's alright, Patrick, no rush at all. Would you like to just sit a bit and listen to some fiddle music with me, or maybe help me fold these towels?
-Response Latency: 3.01 seconds
+Echo Output (Verbatim): That's alright, Patrick. We don't have to talk much right now, I'm happy just sitting here with you. Would you like some Irish music playing softly, or would you rather have a bit of quiet?
+Response Latency: 3.07 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]
 Trigger/Calming Awareness: [REVIEW — expected: Echo shifts from Q&A to storytelling mode per calming strategy (let him feel useful, repairs) using a known profile story (Mrs. Gold, boiler in a Queens winter) to prompt recognition.]

@@ -1,12 +1,10 @@
 Test ID: 18
 Scenario: Career / Caregiver Identity (Reminiscence)
 Profile Loaded: Gloria Campbell
-Timestamp: 2026-07-27 20:29:09
+Timestamp: 2026-07-30 02:50:42
 Input (Verbatim): I need to go check on Mrs. Rosen. She'll be needing her lunch soon. I can't just sit here.
-Echo Output (Verbatim): That's just like you, always thinking of others first, Gloria. Mrs. Rosen was lucky to have someone so caring look after her.
-
-Right now, though, you can rest a little - you've done so much good work in your time. Tell me, did she ever get a taste of your rice and peas?
-Response Latency: 5.12 seconds
+Echo Output (Verbatim): That's so like you, Gloria, always looking out for the people you care for. Mrs. Rosen was lucky to have someone so devoted looking after her lunch and her spirits. Right now, though, you can rest easy here with me for a while. Tell me, what was Mrs. Rosen's favorite thing you used to make her?
+Response Latency: 3.49 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]
 Trigger/Calming Awareness: [REVIEW — expected: Echo validates Gloria's identity as a caregiver (home health aide, Mrs. Rosen is in profile). Does not correct; preserves her sense of purpose and usefulness.]

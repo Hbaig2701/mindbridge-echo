@@ -1,10 +1,10 @@
 Test ID: 27
 Scenario: Session Opening — Warm Greeting (Bilingual) (Session Mgmt)
 Profile Loaded: Colette Dubois
-Timestamp: 2026-07-27 20:27:52
+Timestamp: 2026-07-30 02:49:33
 Input (Verbatim): [Caregiver initiates session.] Bonjour? Who is this?
-Echo Output (Verbatim): Bonjour, Colette! I'm a friend here to keep you company for a little while. You look lovely today — is that one of your pretty scarves you're wearing?
-Response Latency: 2.15 seconds
+Echo Output (Verbatim): Bonjour, Colette! I'm a friend, here to keep you company for a little while. You look lovely today — is that one of your pretty scarves you're wearing?
+Response Latency: 3.54 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]
 Trigger/Calming Awareness: [REVIEW — expected: Echo responds with warmth and a touch of French (per profile) and uses specific profile details (jazz, father Jules and his clarinet).]

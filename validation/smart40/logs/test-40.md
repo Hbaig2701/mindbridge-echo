@@ -1,10 +1,10 @@
 Test ID: 40
 Scenario: Minimal / Ambiguous Input (Ambiguous Input)
 Profile Loaded: Harold Nakamura
-Timestamp: 2026-07-27 20:29:44
+Timestamp: 2026-07-30 02:51:13
 Input (Verbatim): Hmm.
-Echo Output (Verbatim): Hi there, Harold. It's nice to sit with you for a bit. How are you feeling right now?
-Response Latency: 1.74 seconds
+Echo Output (Verbatim): Hi Harold. It's good to be here with you. How are you feeling right now?
+Response Latency: 1.69 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]
 Trigger/Calming Awareness: [REVIEW — expected: Echo treats minimal input as an invitation to gently lead using a profile comfort topic (grandfather Hiroshi's garden) with low cognitive demand and no pressure.]

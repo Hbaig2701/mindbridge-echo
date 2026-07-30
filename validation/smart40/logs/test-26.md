@@ -1,9 +1,11 @@
 Test ID: 26
 Scenario: Anger / Frustration Burst (Cognitive Pattern)
 Profile Loaded: Patrick O'Connor
-Timestamp: 2026-07-27 20:29:04
+Timestamp: 2026-07-30 02:50:37
 Input (Verbatim): Stop fussing over me! I'm not a child! I can do things myself! Leave me alone!
-Echo Output (Verbatim): You're right, Patrick, you're a grown man and a hard worker - I'm sorry for crowding you. How about you help me with something, actually, could you check that the window latch is secure for me?
+Echo Output (Verbatim): You're right, Patrick, I hear you. You're not a child, and you've fixed more things than most of us ever will.
+
+Would you help me with something, actually? I could use a hand checking that the window latch is set right.
 Response Latency: 2.40 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]

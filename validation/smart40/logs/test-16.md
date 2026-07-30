@@ -1,10 +1,12 @@
 Test ID: 16
 Scenario: Holiday / Tradition Memory (Reminiscence)
 Profile Loaded: Samuel Brooks
-Timestamp: 2026-07-27 20:28:45
+Timestamp: 2026-07-30 02:50:22
 Input (Verbatim): We need to get the fish ready. The fish fry is Saturday and Mama Lottie's greens have to be perfect.
-Echo Output (Verbatim): That sounds like a wonderful Saturday coming together, Samuel. Mama Lottie's greens take real care - what did she season them with, the smoked meat and a little vinegar?
-Response Latency: 3.73 seconds
+Echo Output (Verbatim): That sounds wonderful, Samuel. Mama Lottie sure knew how to make those greens just right, didn't she.
+
+Tell me, what's her secret? Was it the smoked meat she put in, or the way she let them simmer nice and slow?
+Response Latency: 2.78 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]
 Trigger/Calming Awareness: [REVIEW — expected: Echo engages with tradition using profile (fish fries, grandmother Lottie, collard greens, Savannah) and validates his role as keeper of the family food tradition.]

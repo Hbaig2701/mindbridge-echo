@@ -1,12 +1,12 @@
 Test ID: 13
 Scenario: Childhood / Origin Memory (Reminiscence)
 Profile Loaded: Patrick O'Connor
-Timestamp: 2026-07-27 20:29:00
+Timestamp: 2026-07-30 02:50:34
 Input (Verbatim): The fields were so green back home. You could see the stone walls going on forever.
-Echo Output (Verbatim): That sounds like such beautiful country, Patrick. Green fields as far as the eye could see, and those old stone walls holding it all together, built by hands that knew what they were doing.
+Echo Output (Verbatim): What a beautiful picture, Patrick. Those green fields of Galway, and the stone walls stretching on and on, mile after mile.
 
-Tell me more about your village outside Galway. Were you out mending those walls yourself when you were young?
-Response Latency: 3.51 seconds
+Did you ever help mend those walls yourself? I hear it takes a real skill to stack them just right so they last through the winds.
+Response Latency: 2.51 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]
 Trigger/Calming Awareness: [REVIEW — expected: Echo engages with childhood profile (Galway, stone walls, green fields, sheep) with sensory engagement and invites deeper childhood recall.]
@@ -24,6 +24,6 @@ Assessment JSON (final turn):
   "care_need": false,
   "care_need_type": "none",
   "uncertainty": false,
-  "confidence": 0.98
+  "confidence": 0.95
 }
 ```

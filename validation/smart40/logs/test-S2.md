@@ -1,10 +1,12 @@
 Test ID: S2
 Scenario: Garbled / Slurred Speech (Messy Data)
 Profile Loaded: Samuel Brooks
-Timestamp: 2026-07-27 20:26:57
+Timestamp: 2026-07-30 02:48:38
 Input (Verbatim): Mmm tha... Deacon... he sang... [unintelligible] ...the bass part... church... [trails off] ...Bernice loved it
-Echo Output (Verbatim): That sounds beautiful, Samuel. Deacon Harris singing that deep bass, and Bernice sitting there loving every note of it. Tell me more about that song, was it one of the big rousing ones or a slow, sweet one?
-Response Latency: 3.54 seconds
+Echo Output (Verbatim): Deacon Harris and that deep bass part, Bernice sitting right there loving every note of it. That sounds like a beautiful Sunday, Samuel.
+
+What song was it, do you think? Something big and full like "His Eye Is on the Sparrow," or one of those old quartet numbers that shook the whole church?
+Response Latency: 2.63 seconds
 Profile Accuracy: [REVIEW — confirm which profile facts were used correctly]
 Tone Assessment: [REVIEW — Warm / Neutral / Clinical / Inappropriate]
 Trigger/Calming Awareness: [REVIEW — expected: Echo identifies fragments (Deacon Harris, bass/singing, church, Bernice) from profile and responds to the clearest elements. Does not highlight communication difficulty or ask 'What did you say?']
