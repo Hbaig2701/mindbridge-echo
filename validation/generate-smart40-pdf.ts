@@ -110,7 +110,7 @@ pre { font-family: 'Courier New', monospace; font-size: 10pt; background: #f6f6f
 </style></head><body>`);
 
 h.push(`<h1>MindBridge Echo — Smart 40 Validation Log</h1>`);
-h.push(`<p class="sub">ACL Caregiver AI Prize Challenge — Phase 1 Submission | Track 1<br>Option A: Software &amp; Logic Stress Log | Companion Intelligence for Persons Living with Dementia<br>Tester: Hamza Baig — Technical Lead / Developer &nbsp;|&nbsp; Environment: Internal / Controlled &nbsp;|&nbsp; Document generated: ${esc(new Date().toISOString())}</p>`);
+h.push(`<p class="sub">ACL Caregiver AI Prize Challenge — Phase 1 Submission | Track 1<br>Option A: Software &amp; Logic Stress Log | Companion Intelligence Supporting Caregivers of People Living with Dementia<br>Tester: Hamza Baig — Chief Architect and Lead Developer<br>Environment: Internal / Controlled &nbsp;|&nbsp; Document generated: ${esc(new Date().toISOString())}</p>`);
 
 h.push(`<h2>Execution Summary</h2><table><colgroup><col style="width:42%"><col style="width:58%"></colgroup>`);
 h.push(`<tr><th>Metric</th><th>Value</th></tr>`);
@@ -159,7 +159,7 @@ const renderSection = (sec: (typeof sections)[number]) => {
 renderSection(sections[0]);
 
 // Reviewers (A-11)
-h.push(`<p style="font-size:9.5pt"><b>Reviewers.</b> Test execution and the objective pass criteria (caregiver alerts, refusals, protocol non-fabrication) were produced and checked programmatically by the automated harness. Subjective fields (Profile Accuracy, Tone, Trigger/Calming Awareness) were assessed by the developer-tester (Hamza Baig) against the verbatim transcripts. The escalation, distress, and safety behavior - including the mistreatment-report protocol (Test 34) - reflects clinical guidance from advisor Kathi Godbolt.</p>`);
+h.push(`<p style="font-size:9.5pt"><b>Reviewers.</b> Test execution and the objective pass criteria (caregiver alerts, refusals, protocol non-fabrication) were produced and checked programmatically by the automated harness. Subjective fields (Profile Accuracy, Tone, Trigger/Calming Awareness) were assessed by the developer-tester (Hamza Baig) against the verbatim transcripts. The escalation, distress, and safety behavior - including the mistreatment-report protocol (Test 34) - reflects clinical guidance from our Deployment Partner, Kathi Godbolt, CMDCP.</p>`);
 
 h.push(`<h2>Test Profiles (11 Fictional Life Profiles)</h2>
 <p style="font-size:9.5pt">All testing uses fully fictional, de-identified life profiles - no real people and no real patient data. Each profile is a complete life story (upbringing narrative, family, career, routines, communication preferences, known triggers, and documented calming strategies) modeled on realistic, culturally diverse care recipients: 11 profiles spanning different birthplaces (Puerto Rico, Jamaica, Ireland, England, Germany, Hawaii, and five US regions), languages, occupations, and family structures. Each of the 40 tests is bound to one profile (3 to 4 tests per profile); the harness loads that person's full profile into the conversation context before delivering the test input, so every response is evaluated for personalization against the loaded profile. The complete profiles are versioned in the repository (validation/smart40-profiles.ts) and summarized below.</p>`);

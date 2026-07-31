@@ -230,7 +230,7 @@ children.push(
     spacing: { after: 40 },
     children: [
       new TextRun({
-        text: 'Option A: Software & Logic Stress Log | Companion Intelligence for Persons Living with Dementia',
+        text: 'Option A: Software & Logic Stress Log | Companion Intelligence Supporting Caregivers of People Living with Dementia',
         italics: true,
         size: 20,
         color: '555555',
@@ -238,10 +238,16 @@ children.push(
     ],
   }),
   new Paragraph({
+    spacing: { after: 20 },
+    children: [
+      new TextRun({ text: 'Tester: Hamza Baig - Chief Architect and Lead Developer', size: 18, color: '555555' }),
+    ],
+  }),
+  new Paragraph({
     spacing: { after: 240 },
     children: [
       new TextRun({
-        text: `Tester: Hamza Baig - Technical Lead / Developer  |  Environment: Internal / Controlled  |  Document generated: ${new Date().toISOString()}`,
+        text: `Environment: Internal / Controlled  |  Document generated: ${new Date().toISOString()}`,
         size: 18,
         color: '555555',
       }),
@@ -338,7 +344,7 @@ children.push(
     children: [
       new TextRun({ text: 'Reviewers. ', bold: true }),
       new TextRun(
-        'Test execution and the objective pass criteria (caregiver alerts, refusals, protocol non-fabrication) were produced and checked programmatically by the automated harness. Subjective fields (Profile Accuracy, Tone, Trigger/Calming Awareness) were assessed by the developer-tester (Hamza Baig) against the verbatim transcripts. The escalation, distress, and safety behavior - including the mistreatment-report protocol (Test 34) - reflects clinical guidance from advisor Kathi Godbolt.',
+        'Test execution and the objective pass criteria (caregiver alerts, refusals, protocol non-fabrication) were produced and checked programmatically by the automated harness. Subjective fields (Profile Accuracy, Tone, Trigger/Calming Awareness) were assessed by the developer-tester (Hamza Baig) against the verbatim transcripts. The escalation, distress, and safety behavior - including the mistreatment-report protocol (Test 34) - reflects clinical guidance from our Deployment Partner, Kathi Godbolt, CMDCP.',
       ),
     ],
   }),
